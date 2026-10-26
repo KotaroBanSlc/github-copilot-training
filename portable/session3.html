@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 3 回：Plan モードと協働開発実践 | 受講者ハンドアウト</title>
+<link rel="stylesheet" href="assets/handout.css">
+</head>
+<body id="top">
+
+<header class="page-header">
+  <h1>第 3 回：Plan モードと協働開発実践</h1>
+  <div class="header-meta">
+    <span class="header-meta__item"><strong>対象読者</strong>第 1・2 回を受講し、Agent モードでの修正とテスト生成を体験した方</span>
+    <span class="header-meta__item"><strong>所要時間</strong>120 分（休憩 5 分含む）</span>
+    <span class="header-meta__item"><strong>形式</strong>個人ワーク（ハンズオン⑧）＋ ペアプロ（ハンズオン⑨）</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="目次">
+    <h2>目次</h2>
+    <!-- 目次は assets/handout.js が section.page から自動生成します -->
+    <ul id="toc-list"></ul>
+  </nav>
+
+  <main>
+    <section class="page" id="p1" data-title="オリエンテーション" data-time="0–10 分">
+    <h2 id="intro">第 3 回のはじめに</h2>
+    <p>第 1 回は<strong>読む・理解する</strong>、第 2 回は<strong>直す・作る</strong>ための使い方でした。<br>最終回は、<strong>作る前に設計を固める</strong>ことと、<strong>2 人で協働しながら AI を使う</strong>ことの 2 つに取り組みます。</p>
+    <div class="callout note">
+      <span class="callout-title">第 2 回との違い</span>
+      第 2 回までは、指示を出したらそのまま AI が書き換えていました。今日はその前に <strong>Plan モード</strong>で計画書を作り、<strong>人が計画をレビューしてから</strong>実装に進みます。さらに後半は<strong>ペアプログラミング</strong>で、同じ課題にお互いチャレンジし、試したプロンプトや試行錯誤の過程を共有し合いながら進めます。
+    </div>
+
+    <h2 id="goals">本日のゴール</h2>
+    <ol class="goals">
+      <li>Plan モードを使い、仕様から実装へと進む 2 段階の開発フローを回せる</li>
+      <li>Plan と Agent を、タスクの規模に応じて使い分けられる</li>
+      <li>ペアプログラミングのなかで Copilot を協働ツールとして活かせる</li>
+      <li>AI を使ったコードレビューができる</li>
+      <li>自分のチームに Copilot をどう根付かせるか、イメージが持てる</li>
+    </ol>
+
+    <h2 id="agenda">第3回目のアジェンダ</h2>
+    <table>
+      <thead><tr><th>時間</th><th>内容</th><th>所要</th></tr></thead>
+      <tbody>
+        <tr><td>0–10 分</td><td>導入：第 2 回の振り返り</td><td>10 分</td></tr>
+        <tr><td>10–25 分</td><td>講義⑥ Plan モードの位置づけ</td><td>15 分</td></tr>
+        <tr><td>25–50 分</td><td>ハンズオン⑧ Plan モードで品質の高い成果物</td><td>25 分</td></tr>
+        <tr><td>50–55 分</td><td><strong>休憩</strong></td><td>5 分</td></tr>
+        <tr><td>55–110 分</td><td>ハンズオン⑨ ペアプロで TODO アプリ改善</td><td>55 分</td></tr>
+        <tr><td>110–120 分</td><td>振り返り・アンケート回答・社内展開のヒント</td><td>10 分</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="review2">第 2 回の振り返り</h2>
+    <p>第 2 回でひととおり触れたのは、次の 3 つでした。今日はこの続きです。</p>
+    <table>
+      <thead><tr><th>第 2 回でやったこと</th><th>今日つながる先</th></tr></thead>
+      <tbody>
+        <tr><td>プロンプトの 5 要素（Context・Role・Action・Format・Target）</td><td>同じ型で <strong>Plan モードに要件を渡す</strong>。とくに Target（成功条件）が計画の精度に効く</td></tr>
+        <tr><td>エラーメッセージ全文を <code>/fix</code> に渡してバグを 1 件直した</td><td>今日は<strong>1 件直して終わりにしない</strong>。B1 を起点に、類似バグがないかまで横断探索させる</td></tr>
+        <tr><td>差分を見て受け入れる（Apply / Keep の判断）</td><td>その判断の根拠を<strong>ペアに説明し、共有し合う</strong>形に変える</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section class="page" id="p2" data-title="講義⑥：Plan モードの位置づけ" data-time="10–25 分">
+<h2 id="lecture6">講義⑥：Plan モードの位置づけ</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>15 分</span>
+      <span class="session-meta__item"><strong>目的</strong>Plan モードを「設計を専門にした Agent」として捉え、規模と不確実性で Agent と使い分けられるようにする</span>
+    </p>
+
+    <h3 id="l6-1">Plan モードとは何か</h3>
+    <p>Plan モードは、GitHub Copilot Chat に組み込まれた<strong>計画立案に特化したチャットモード</strong>です。コードは書かず、<strong>設計と段取りだけ</strong>を詰めて <code>plan.md</code> という計画書にまとめてくれます。</p>
+    <p>ひとことで言えば、<strong>設計を専門にした Agent</strong> です。Agent モードに「そうじゃないんだよなあ」と何度も出し直させた経験がある方は、その手戻りを減らすための仕組みだと考えてください。</p>
+    <figure class="shot">
+      <img src="assets/images/plan-mode-picker.png" alt="GitHub Copilot Chat 下部のモードピッカーを開き、Ask / Agent / Plan のうち Plan が選択されている画面">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 330" role="img" aria-label="GitHub Copilot Chat 下部のモードピッカーを開き、Ask / Agent / Plan のうち Plan が選択されている画面のイメージ">
+          <rect x="0" y="0" width="820" height="330" fill="#ffffff"/>
+          <rect x="10" y="10" width="800" height="310" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+          <rect x="10" y="10" width="800" height="28" rx="8" fill="#f3f3f3"/>
+          <text x="30" y="29" font-family="sans-serif" font-size="12" fill="#24292f">GitHub Copilot Chat</text>
+          <text x="60" y="74" font-family="sans-serif" font-size="12" fill="#8b949e">計画したい内容を書いてください。まだコードは書かれません。</text>
+          <rect x="60" y="96" width="240" height="110" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="76" y="116" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#8b949e">モード</text>
+          <text x="82" y="142" font-family="sans-serif" font-size="12.5" fill="#24292f">Ask</text>
+          <text x="82" y="168" font-family="sans-serif" font-size="12.5" fill="#24292f">Agent</text>
+          <rect x="66" y="176" width="228" height="26" rx="6" fill="#ddf4ff"/>
+          <text x="82" y="194" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#0a4f8a">Plan</text>
+          <path d="M270 188 l5 5 l9 -11" stroke="#0a4f8a" stroke-width="2" fill="none"/>
+          <rect x="62" y="172" width="236" height="34" rx="8" fill="none" stroke="#cf222e" stroke-width="2"/>
+          <rect x="330" y="150" width="330" height="56" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="344" y="172" font-family="sans-serif" font-size="12" fill="#111418">Plan ＝ 計画だけを立てるモード。</text>
+          <text x="344" y="192" font-family="sans-serif" font-size="12" fill="#111418">コードは書かず、足りない情報は質問で返してくる</text>
+          <path d="M330 180 L302 189" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="60" y="248" width="700" height="58" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="76" y="272" font-family="sans-serif" font-size="12" fill="#111418">カロリー計算アプリを Python で作成したいです。…</text>
+          <rect x="68" y="282" width="86" height="18" rx="9" fill="#eef5fd" stroke="#0366d6"/>
+          <text x="80" y="295" font-family="sans-serif" font-size="11" font-weight="700" fill="#0366d6">Plan ▾</text>
+          <rect x="162" y="282" width="110" height="18" rx="9" fill="#f4f6f8" stroke="#c8d1da"/>
+          <text x="174" y="295" font-family="sans-serif" font-size="11" fill="#57606a">モデル選択 ▾</text>
+          <rect x="700" y="280" width="48" height="22" rx="6" fill="#0366d6"/>
+          <text x="712" y="296" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">送信</text>
+          <rect x="722" y="44" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="734" y="59" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図1：モードピッカーから <strong>Plan</strong> を選ぶ。UI は Agent モードと似ているが、出てくるのはコードではなく計画</figcaption>
+    </figure>
+
+    <h3 id="l6-2">Plan モードと Agent モードの違い</h3>
+    <table>
+      <thead><tr><th>項目</th><th>Plan</th><th>Agent</th></tr></thead>
+      <tbody>
+        <tr><td>出力</td><td><strong>計画書（<code>plan.md</code>）</strong></td><td>コード変更</td></tr>
+        <tr><td>実行</td><td>コードは触らない</td><td>ファイルを書き換える、コマンドを実行する</td></tr>
+        <tr><td>質問</td><td><strong>積極的にこちらに質問してくる</strong></td><td>推測で進める</td></tr>
+        <tr><td>適合するタスク</td><td>仕様が曖昧な大きな変更</td><td>仕様が明確な変更</td></tr>
+        <tr><td>引き継ぎ</td><td><strong>Start Implementation</strong> で Agent に渡す</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      Plan は、<strong>後になって「思っていたのと違う」となるのを防ぐための仕組み</strong>です。Agent が推測で進めてしまう部分を、先に質問として表に出させます。
+    </div>
+
+    <h3 id="l6-3">仕様 → 実装の 2 段階フロー</h3>
+    <p>今日のハンズオンで回すのは、次の流れです。<strong>plan.md を人がレビューする</strong>ステップが真ん中に入るところがポイントです。</p>
+    <pre class="mermaid">flowchart LR
+    A[要件] --&gt; B{規模・不確実性}
+    B -- 小さい・明確 --&gt; E[Agent モード]
+    B -- 大きい・曖昧 --&gt; C[Plan モード]
+    C --&gt; D[plan.md]
+    D --&gt; R[人間レビュー]
+    R -- OK --&gt; S[Start Implementation]
+    S --&gt; E
+    E --&gt; F[実装]
+    F --&gt; G[コードレビュー]
+    style C fill:#0366d6,color:#fff
+    style E fill:#2ea043,color:#fff</pre>
+    <p class="note-line">計画に不足があれば、実装に進む前に「<strong>plan.md を更新して、〇〇を追加してください</strong>」と戻せます。コードが書かれる前に軌道修正できるので、Agent に直接投げて作り直させるより手戻りが小さくなります。</p>
+
+    <h3 id="l6-4">いつ Plan を使うべきか</h3>
+    <p>公式ドキュメントでは、Plan は「<strong>複数ステップにわたる作業を、コードを書く前に分解して固める</strong>」ための機能とされています。判断の目安は次の 3 つ。<strong>1 つでも当てはまれば Plan → Agent</strong>、どれにも当てはまらなければ Agent 直行で構いません。</p>
+    <table>
+      <thead><tr><th>#</th><th>目安</th><th>例</th></tr></thead>
+      <tbody>
+        <tr class="row-hl"><td>1</td><td><strong>変更が複数ファイル・複数レイヤーに跨る</strong></td><td>スキーマ・API・フロントが連動する新機能</td></tr>
+        <tr class="row-hl"><td>2</td><td><strong>要件に未決定事項が残っている</strong></td><td>「保存形式は？」「エラー時は？」と質問が浮かぶ状態</td></tr>
+        <tr class="row-hl"><td>3</td><td><strong>間違えたときの手戻りが大きい</strong></td><td>スキーマ変更、新規プロジェクトの立ち上げ、公開 API の変更</td></tr>
+      </tbody>
+    </table>
+    <p class="note-line">計画は実装より直すのが圧倒的に安いので、Plan に入ったら<strong>すぐ実装に進まず、計画への質問・修正に時間を使う</strong>のがベストプラクティスとされています。</p>
+    </section>
+
+    <section class="page" id="p3" data-title="ハンズオン⑧：Plan モードで品質の高い成果物" data-time="25–50 分">
+<h2 id="ho8">ハンズオン⑧：Plan モードで品質の高い成果物</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>25 分</span>
+      <span class="session-meta__item"><strong>目的</strong>計画（Plan）と実装（Agent）を分けて進める 2 段階フローを、自分の手で 1 周させる</span>
+      <span class="session-meta__item"><strong>形式</strong>個人ワーク</span>
+      <span class="session-meta__item"><strong>題材</strong><code>samples/session3/plan_mode_exercise/</code>（食品 DB の雛形 <code>food_db.json</code> のみ用意済み）</span>
+    </p>
+
+    <h3 id="ho8-theme">題材：カロリー計算アプリ（画面あり）</h3>
+    <p>食品と摂取量から栄養素を計算する、<strong>画面ありの Windows アプリ</strong>を作ります。仕様は次のとおりです。</p>
+    <ul>
+      <li>画面のドロップダウンで食品を選び、摂取量（g）を入力して「計算」ボタンを押すと、4 大栄養素（<code>calories</code> / <code>protein</code> / <code>fat</code> / <code>carbs</code>）を表示する</li>
+      <li>栄養情報は同じフォルダの <code>food_db.json</code>（30 食品分）を参照する</li>
+      <li>「記録」ボタンで履歴に追記し、画面の履歴リストと「本日合計」を更新する（履歴は <code>~/.calorie_log</code> に保存し、再起動しても本日分が残る）</li>
+      <li>GUI は<strong>標準ライブラリ同梱の tkinter</strong> を使い、外部ライブラリは使わない（<code>pip install</code> 不要）</li>
+      <li>計算ロジックは UI と分離し、pytest でテストできる構造にする</li>
+    </ul>
+
+    <h3 id="ho8-image">完成イメージ</h3>
+    <p><code>python calorie_app.py</code> で次のような画面が開き、マウスと数値入力だけでカロリー計算できる状態を目指します。</p>
+    <figure class="shot">
+      <img src="assets/images/calorie-app-gui.png" alt="カロリー計算アプリの完成イメージ。食品のドロップダウンと量の入力欄、計算ボタン、結果表示、履歴リスト、本日合計が並ぶ画面">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 400" role="img" aria-label="カロリー計算アプリの完成イメージ。食品のドロップダウンと量の入力欄、計算ボタン、結果表示、履歴リスト、本日合計が並ぶ画面のイメージ">
+          <rect x="0" y="0" width="820" height="400" fill="#ffffff"/>
+          <rect x="10" y="10" width="800" height="380" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+          <rect x="10" y="10" width="800" height="30" rx="8" fill="#f3f3f3"/>
+          <text x="30" y="30" font-family="sans-serif" font-size="12" fill="#24292f">カロリー計算</text>
+          <text x="742" y="30" font-family="sans-serif" font-size="12" fill="#57606a">─　□　✕</text>
+          <text x="40" y="76" font-family="sans-serif" font-size="12" fill="#111418">食品</text>
+          <rect x="80" y="58" width="200" height="26" rx="4" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="92" y="76" font-family="sans-serif" font-size="12" fill="#111418">白米</text>
+          <text x="262" y="76" font-family="sans-serif" font-size="10" fill="#57606a">▾</text>
+          <text x="310" y="76" font-family="sans-serif" font-size="12" fill="#111418">量 (g)</text>
+          <rect x="360" y="58" width="80" height="26" rx="4" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="374" y="76" font-family="sans-serif" font-size="12" fill="#111418">150</text>
+          <rect x="460" y="58" width="72" height="26" rx="4" fill="#0366d6"/>
+          <text x="480" y="76" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">計算</text>
+          <rect x="40" y="100" width="540" height="34" rx="4" fill="#fbfcfd" stroke="#e1e6eb"/>
+          <text x="54" y="122" font-family="sans-serif" font-size="12" fill="#111418">白米 150g: 234 kcal ｜ たんぱく質 4.5g ｜ 脂質 0.6g ｜ 炭水化物 51.6g</text>
+          <rect x="600" y="104" width="72" height="26" rx="4" fill="#2ea043"/>
+          <text x="620" y="122" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">記録</text>
+          <text x="40" y="164" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#57606a">履歴（本日）</text>
+          <rect x="40" y="172" width="540" height="130" rx="4" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="54" y="196" font-family="sans-serif" font-size="12" fill="#111418">12:05　白米 150g — 234 kcal</text>
+          <text x="54" y="220" font-family="sans-serif" font-size="12" fill="#8b949e">（「記録」を押すとここに追加されます）</text>
+          <rect x="40" y="316" width="540" height="34" rx="4" fill="#eef5fd" stroke="#c8d1da"/>
+          <text x="54" y="338" font-family="sans-serif" font-size="12" font-weight="700" fill="#0a4f8a">本日合計: 234 kcal ｜ たんぱく質 4.5g ｜ 脂質 0.6g ｜ 炭水化物 51.6g（1 件）</text>
+          <rect x="600" y="160" width="190" height="64" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="612" y="182" font-family="sans-serif" font-size="11.5" fill="#111418">① 食品と量を入れて「計算」</text>
+          <text x="612" y="200" font-family="sans-serif" font-size="11.5" fill="#111418">→ 結果がすぐ上に表示される</text>
+          <path d="M600 176 L560 120" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="600" y="244" width="190" height="64" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="612" y="266" font-family="sans-serif" font-size="11.5" fill="#111418">② 「記録」で履歴と本日合計が</text>
+          <text x="612" y="284" font-family="sans-serif" font-size="11.5" fill="#111418">更新（~/.calorie_log に保存）</text>
+          <path d="M600 290 L560 330" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="700" y="46" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="712" y="61" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図2：カロリー計算アプリの完成イメージ。レイアウトは計画次第で変わって構いません（数値は <code>food_db.json</code> の内容によって変わります）</figcaption>
+    </figure>
+    <p><strong>この状態になれば成功です。</strong></p>
+    <ul>
+      <li>食品を選んで量を入れ、「計算」で 4 大栄養素が日本語ラベルで表示される</li>
+      <li>「記録」で履歴に行が増え、「本日合計」が更新される</li>
+      <li>アプリを閉じて再起動しても、本日分の履歴と合計が残っている</li>
+    </ul>
+    <p class="note-line">加えて、<strong>実装前に計画書（<code>plan.md</code>）を人がレビューし、計画と実装が分離されている</strong>ことが、このハンズオンで作ってほしい状態です。</p>
+
+    <h3 id="ho8-steps">手順</h3>
+    <ol class="steps">
+      <li>教材リポジトリ（<code>github-copilot-training</code>）を開いたまま進めます。<strong>VS Code でフォルダを開き直す必要はありません</strong>（出力先はプロンプトで指定します）</li>
+      <li>ターミナルで <code>python -m tkinter</code> を実行し、小さなテストウィンドウが開くことを確認しましょう（開いたら閉じて OK です。エラーになる場合は tkinter が入っていない Python です。手を挙げて講師に伝えてください）</li>
+      <li><code>samples/session3/plan_mode_exercise/food_db.json</code> の中身をひととおり眺めましょう（30 食品分の栄養情報が入っています）</li>
+      <li>GitHub Copilot Chat のモードピッカーから <strong>Plan</strong> を選択しましょう</li>
+      <li>次のプロンプトを送信しましょう
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Plan モード）に貼るプロンプト">
+          <button class="copy-btn" data-copy-target="ho8-prompt">コピー</button>
+          <pre id="ho8-prompt">カロリー計算アプリを Python で作成したいです。
+Windows で動く画面ありのアプリにしてください
+（GUI は標準ライブラリの tkinter を使用）。
+
+要件:
+- food_db.json の食品一覧をドロップダウンで選択できる
+- 摂取量(g) を数値で入力し、「計算」ボタンで 4 大栄養素を表示
+  - calories, protein, fat, carbs
+- 「記録」ボタンで履歴に追記（~/.calorie_log の JSONL）し、
+  画面の履歴リストと「本日合計」を更新する
+- アプリ起動時に本日分の履歴を読み込んで表示する
+- 画面のラベルは日本語にする
+  （たんぱく質 / 脂質 / 炭水化物、合計は「本日合計」）
+- 量が数値でない・0 以下のときは画面にエラーメッセージを表示
+- 計算ロジックは UI と分離し、pytest で単体テストできる構造にする
+- メインは calorie_app.py とし、python calorie_app.py で起動できるようにする
+- 標準ライブラリのみで実装（外部依存なし）
+
+ファイルは samples/session3/plan_mode_exercise/ 配下に出力してください。
+食品 DB は samples/session3/plan_mode_exercise/food_db.json として
+既に存在します。
+
+実装計画を立ててください。</pre>
+        </div>
+        <p class="note-line">「要件:」の箇条書きが <strong>Target</strong>（成功条件）、出力先フォルダと食品 DB の場所の指定が <strong>Context</strong>、最後の 1 行が <strong>Action</strong> です。講義④で扱った型がそのまま使えます。</p>
+      </li>
+      <li>Plan が<strong>質問を返してきたら回答しましょう</strong>（<strong>Further Considerations</strong> として提示されることが多いです）
+        <ul>
+          <li>例：「履歴の保存形式は JSONL でいいですか？　それとも SQLite にしますか？」</li>
+          <li>ここで答えた内容が計画に反映されます。<strong>面倒がらずに答える</strong>のがコツです</li>
+        </ul>
+      </li>
+      <li>計画（<code>plan.md</code>）が出力されたことを確認しましょう。チャット上でそのまま読めますが、上部の <strong>Open in Editor</strong> ボタンでエディタに開くと読みやすくなります
+        <figure class="shot">
+          <img src="assets/images/plan-md-start-implementation.png" alt="生成された plan.md がエディタに表示され、下部の Open in Editor と Start Implementation ボタンで確認と実装への引き継ぎができる画面">
+          <div class="shot__fallback">
+            <svg viewBox="0 0 820 380" role="img" aria-label="生成された plan.md がエディタに表示され、下部の Open in Editor と Start Implementation ボタンで確認と実装への引き継ぎができる画面のイメージ">
+              <rect x="0" y="0" width="820" height="380" fill="#ffffff"/>
+              <rect x="10" y="10" width="800" height="360" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+              <rect x="10" y="10" width="800" height="28" rx="8" fill="#f3f3f3"/>
+              <text x="30" y="29" font-family="sans-serif" font-size="12" fill="#24292f">plan.md</text>
+              <text x="40" y="66" font-family="monospace" font-size="13" font-weight="700" fill="#111418"># カロリー計算アプリ 実装計画</text>
+              <text x="40" y="94" font-family="monospace" font-size="12.5" font-weight="700" fill="#24292f">## Overview</text>
+              <text x="40" y="112" font-family="monospace" font-size="12.5" fill="#24292f">食品と摂取量から 4 大栄養素を計算する GUI アプリを実装する。</text>
+              <text x="40" y="144" font-family="monospace" font-size="12.5" font-weight="700" fill="#24292f">## Further Considerations</text>
+              <rect x="40" y="149" width="222" height="1.6" fill="#24292f"/>
+              <text x="40" y="164" font-family="monospace" font-size="12.5" fill="#24292f">- 履歴の保存形式は JSONL で良いか？（SQLite も可）</text>
+              <text x="40" y="182" font-family="monospace" font-size="12.5" fill="#24292f">- 履歴は何日分まで画面に表示するか？</text>
+              <text x="40" y="214" font-family="monospace" font-size="12.5" font-weight="700" fill="#24292f">## Implementation Steps</text>
+              <rect x="40" y="219" width="205" height="1.6" fill="#24292f"/>
+              <text x="40" y="234" font-family="monospace" font-size="12.5" fill="#24292f">1. food_db.json のローダを実装（標準ライブラリのみ）</text>
+              <text x="40" y="252" font-family="monospace" font-size="12.5" fill="#24292f">2. 栄養素の計算ロジックを純粋関数として実装（UI と分離）</text>
+              <text x="40" y="270" font-family="monospace" font-size="12.5" fill="#24292f">3. tkinter で画面を組み立てる（計算 / 記録 / 本日合計）</text>
+              <text x="40" y="288" font-family="monospace" font-size="12.5" fill="#24292f">4. pytest でテストを追加（境界値・異常入力）</text>
+              <rect x="24" y="300" width="772" height="1" fill="#e1e6eb"/>
+              <rect x="40" y="316" width="240" height="44" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="54" y="336" font-family="sans-serif" font-size="11.5" fill="#111418">① Open in Editor で計画を開いて確認</text>
+              <text x="54" y="352" font-family="sans-serif" font-size="11.5" fill="#111418">② レビュー後に実装へ引き継ぐ</text>
+              <path d="M280 334 L300 330" stroke="#bf8700" stroke-width="2" fill="none"/>
+              <rect x="308" y="316" width="150" height="28" rx="6" fill="#ffffff" stroke="#0366d6"/>
+              <text x="326" y="335" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#0366d6">Open in Editor</text>
+              <rect x="480" y="316" width="190" height="28" rx="6" fill="#2ea043"/>
+              <text x="500" y="335" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#ffffff">Start Implementation</text>
+              <rect x="476" y="312" width="198" height="36" rx="8" fill="none" stroke="#cf222e" stroke-width="2"/>
+              <text x="688" y="335" font-family="sans-serif" font-size="10.5" fill="#57606a">※ボタン名は環境により差異あり</text>
+              <rect x="722" y="44" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="734" y="59" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+            </svg>
+          </div>
+          <figcaption>図3：<code>plan.md</code> をレビューしてから <strong>Start Implementation</strong> で Agent に渡す。ボタンの名称は環境により異なる場合があります</figcaption>
+        </figure>
+      </li>
+      <li>計画をレビューしましょう。<strong>そのまま実装に流さず</strong>、次の 5 点を確認してください。<strong>ここが今日いちばん練習してほしい動作</strong>です
+        <table>
+          <thead><tr><th>観点</th><th>見るところ</th></tr></thead>
+          <tbody>
+            <tr><td>粒度</td><td>細かすぎ／粗すぎないか。1 ステップが 1 作業として読めるか</td></tr>
+            <tr><td>依存ライブラリ</td><td>妥当か。今回は<strong>標準ライブラリのみ（GUI は tkinter）</strong>という条件を満たしているか</td></tr>
+            <tr class="row-hl"><td>テスト戦略</td><td><strong>テストの方針が含まれているか</strong>。抜けやすい項目です。<strong>「GUI は直接テストせず、分離した計算ロジックを pytest でテストする」</strong>方針になっているかまで見てください</td></tr>
+            <tr><td>ファイル構成</td><td>どのファイルを作るのかが明示され、<strong>UI とロジックが別ファイル</strong>に分かれているか</td></tr>
+            <tr><td>エッジケース</td><td>量が 0 や負数・数値以外、履歴が空、<code>food_db.json</code> が読めない、などに触れているか</td></tr>
+          </tbody>
+        </table>
+        <p class="note-line">不足があれば、Plan モードのまま「<strong>plan.md を更新して、〇〇を追加してください</strong>」と指示しましょう。<strong>実装が始まる前に直すほうが、あとから直すより圧倒的に楽です。</strong></p>
+      </li>
+      <li>計画下部の <strong>Start Implementation</strong> をクリックして、Agent モードに引き継ぎましょう</li>
+      <li>実装が終わったら、アプリを起動して動作確認しましょう
+        <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（Windows / PowerShell）">
+          <button class="copy-btn" data-copy-target="ho8-run">コピー</button>
+          <pre id="ho8-run">cd samples\session3\plan_mode_exercise
+python calorie_app.py</pre>
+        </div>
+        <p class="note-line">ターミナルは教材リポジトリのフォルダーで開くため、<code>cd</code> でアプリのフォルダーへ移動してから起動します。画面が開いたら、「完成イメージ」の 3 点（計算できる → 記録で合計が更新される → 再起動しても残る）を操作して確認します。</p>
+      </li>
+    </ol>
+
+    <h3 id="ho8-expected">期待される結果</h3>
+    <ul>
+      <li><code>plan.md</code> が 50〜150 行程度で生成される</li>
+      <li><strong>テスト戦略</strong>のセクションが含まれ、<strong>GUI とロジックの分離</strong>に触れている（無ければ追記を指示できた）</li>
+      <li>ファイル構成（例：<code>calorie_app.py</code>、<code>nutrition.py</code>、<code>tests/test_nutrition.py</code>、<code>food_db.json</code>。ファイル名は計画により変わります）が明示される</li>
+      <li>レビューと追記指示を<strong>1 回以上</strong>行った</li>
+      <li><strong><code>python calorie_app.py</code> で画面が開き、白米 150g の計算と記録ができる</strong></li>
+    </ul>
+    </section>
+
+    <section class="page" id="p4" data-title="休憩 ／ ハンズオン⑨の題材とルール" data-time="50–55 分">
+<h2 id="break">休憩（5 分）</h2>
+    <p>戻ってきたら、ここからはペアで進めます。まず <strong>各自の PC で TODO アプリを起動</strong>してください。ハンズオン⑧で <code>plan_mode_exercise</code> フォルダーに移動している場合は、<code>cd ..\..\..</code> で教材リポジトリのフォルダーへ戻ってから実行します。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（Windows / PowerShell）">
+      <button class="copy-btn" data-copy-target="ho9-start">コピー</button>
+      <pre id="ho9-start">cd samples\session3\todo-app-buggy
+pip install -r requirements.txt
+python server.py</pre>
+    </div>
+    <p class="note-line">起動後、ブラウザで <code>http://localhost:5000</code> を開きます。初回起動時に <code>todos.db</code> が自動生成され、サンプル TODO が 5 件入ります。</p>
+
+    <h3 id="ho9-precheck">始める前のチェック</h3>
+    <p>ハンズオン⑨で使うものが揃っているか、ペアでお互いに確認してから進みます。</p>
+    <table>
+      <thead><tr><th>項目</th><th>確認方法</th></tr></thead>
+      <tbody>
+        <tr><td>TODO アプリが起動する</td><td>上のコマンドで 5000 番ポートが開く</td></tr>
+        <tr><td>ブラウザで TODO 一覧が見える</td><td><code>http://localhost:5000</code> にサンプル TODO が 5 件表示される</td></tr>
+        <tr><td><code>BUGS_AND_IMPROVEMENTS.md</code> の場所がわかる</td><td><code>samples/session3/todo-app-buggy/</code> 配下。課題 B1〜B2・F1〜F3 の一覧（手順の最初にペアで読みます）</td></tr>
+      </tbody>
+    </table>
+    <div class="callout caution">
+      <span class="callout-title">TODO アプリが起動しない場合</span>
+      <code>pip install -r requirements.txt</code> を実行してから <code>python server.py</code> を試してください。それでも動かない場合は<strong>ペアのもう 1 台で進められます</strong>（1 台を交代で使ってください）。2 台とも動かないときは手を挙げて講師に伝えてください。
+    </div>
+
+    <h2 id="ho9-app">ハンズオン⑨の題材：TODO アプリ（バグ仕込み版）</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>題材</strong><code>samples/session3/todo-app-buggy/</code></span>
+      <span class="session-meta__item"><strong>構成</strong>Python（Flask）＋ SQLite ＋ 素の HTML / CSS / JS</span>
+      <span class="session-meta__item"><strong>課題一覧</strong><code>BUGS_AND_IMPROVEMENTS.md</code>（バグ 2 件・機能改善 3 件）</span>
+    </p>
+    <p>TODO の一覧・追加・編集・削除・絞り込みができる小さな Web アプリです。ファイル構成は次のとおりで、<strong>サーバとフロントの両方に手を入れる</strong>課題になっています。</p>
+    <table>
+      <thead><tr><th>ファイル</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td><code>server.py</code></td><td>Flask サーバ ＋ <code>/api/todos</code> の CRUD API</td></tr>
+        <tr><td><code>db/init.sql</code></td><td><code>todos</code> テーブルのスキーマ定義</td></tr>
+        <tr><td><code>public/index.html</code></td><td>画面のマークアップ（編集ダイアログを含む）</td></tr>
+        <tr><td><code>public/app.js</code></td><td>API 連携と一覧の描画</td></tr>
+        <tr><td><code>BUGS_AND_IMPROVEMENTS.md</code></td><td>課題リスト（B1〜B2 / F1〜F3）。<strong>最初に読むファイル</strong></td></tr>
+      </tbody>
+    </table>
+
+    <figure class="shot">
+      <img src="assets/images/todo-app.png" alt="ブラウザで http://localhost:5000 を開いた TODO アプリの初期画面。絞り込み欄、新規追加フォーム、5 件の TODO 一覧が表示されている">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 430" role="img" aria-label="ブラウザで http://localhost:5000 を開いた TODO アプリの初期画面。絞り込み欄、新規追加フォーム、5 件の TODO 一覧が表示されている画面のイメージ">
+          <rect x="0" y="0" width="820" height="430" fill="#ffffff"/>
+          <rect x="10" y="10" width="800" height="410" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+          <rect x="10" y="10" width="800" height="30" rx="8" fill="#f3f3f3"/>
+          <circle cx="30" cy="25" r="5" fill="#ff5f56"/><circle cx="48" cy="25" r="5" fill="#ffbd2e"/><circle cx="66" cy="25" r="5" fill="#27c93f"/>
+          <rect x="86" y="16" width="300" height="18" rx="9" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="98" y="30" font-family="sans-serif" font-size="11" fill="#57606a">http://localhost:5000</text>
+          <rect x="40" y="52" width="470" height="356" rx="8" fill="#fbfcfd" stroke="#e1e6eb"/>
+          <text x="60" y="84" font-family="sans-serif" font-size="16" font-weight="700" fill="#111418">TODO アプリ</text>
+          <text x="60" y="102" font-family="sans-serif" font-size="10.5" fill="#8b949e">ペアプロ / Copilot ハンズオン題材</text>
+          <rect x="56" y="116" width="220" height="24" rx="4" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="66" y="133" font-family="sans-serif" font-size="11" fill="#8b949e">タイトル・説明で絞り込み</text>
+          <rect x="284" y="116" width="64" height="24" rx="4" fill="#0366d6"/>
+          <text x="296" y="133" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">絞り込む</text>
+          <rect x="354" y="116" width="56" height="24" rx="4" fill="#ffffff" stroke="#c8d1da"/>
+          <text x="366" y="133" font-family="sans-serif" font-size="10.5" fill="#57606a">リセット</text>
+          <text x="60" y="166" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#57606a">新規追加</text>
+          <rect x="56" y="174" width="170" height="24" rx="4" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="66" y="191" font-family="sans-serif" font-size="10.5" fill="#8b949e">タイトル（必須）</text>
+          <rect x="232" y="174" width="130" height="24" rx="4" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="242" y="191" font-family="sans-serif" font-size="10.5" fill="#8b949e">説明(任意)</text>
+          <rect x="370" y="174" width="44" height="24" rx="4" fill="#2ea043"/>
+          <text x="382" y="191" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">追加</text>
+          <circle cx="428" cy="186" r="9" fill="#bf8700"/>
+          <text x="425" y="190" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">2</text>
+          <text x="60" y="220" font-family="sans-serif" font-size="11.5" font-weight="700" fill="#57606a">TODO 一覧</text>
+          <rect x="132" y="208" width="26" height="16" rx="8" fill="#eef5fd" stroke="#c8d1da"/>
+          <text x="141" y="220" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#0a4f8a">5</text>
+          <g font-family="sans-serif" font-size="10.5">
+            <rect x="56" y="230" width="358" height="26" rx="4" fill="#ffffff" stroke="#eceff2"/>
+            <rect x="64" y="236" width="12" height="12" rx="2" fill="#2ea043"/>
+            <path d="M66 242 l3 3 l6 -7" stroke="#ffffff" stroke-width="1.8" fill="none"/>
+            <text x="84" y="247" fill="#8b949e">『Vibe Coding』の記事を読む</text>
+            <rect x="320" y="234" width="40" height="18" rx="4" fill="#ffffff" stroke="#c8d1da"/><text x="330" y="247" fill="#57606a">編集</text>
+            <rect x="366" y="234" width="40" height="18" rx="4" fill="#ffffff" stroke="#cf222e"/><text x="376" y="247" fill="#cf222e">削除</text>
+
+            <rect x="56" y="260" width="358" height="26" rx="4" fill="#ffffff" stroke="#eceff2"/>
+            <rect x="64" y="266" width="12" height="12" rx="2" fill="#ffffff" stroke="#8c97a3"/>
+            <text x="84" y="277" fill="#111418">プルリクエスト #42 をレビュー</text>
+            <rect x="320" y="264" width="40" height="18" rx="4" fill="#ffffff" stroke="#c8d1da"/><text x="330" y="277" fill="#57606a">編集</text>
+            <rect x="366" y="264" width="40" height="18" rx="4" fill="#ffffff" stroke="#cf222e"/><text x="376" y="277" fill="#cf222e">削除</text>
+
+            <rect x="56" y="290" width="358" height="26" rx="4" fill="#ffffff" stroke="#eceff2"/>
+            <rect x="64" y="296" width="12" height="12" rx="2" fill="#ffffff" stroke="#8c97a3"/>
+            <text x="84" y="307" fill="#111418">ペアプロの準備</text>
+            <rect x="320" y="294" width="40" height="18" rx="4" fill="#ffffff" stroke="#c8d1da"/><text x="330" y="307" fill="#57606a">編集</text>
+            <rect x="366" y="294" width="40" height="18" rx="4" fill="#ffffff" stroke="#cf222e"/><text x="376" y="307" fill="#cf222e">削除</text>
+
+            <rect x="56" y="320" width="358" height="26" rx="4" fill="#ffffff" stroke="#eceff2"/>
+            <rect x="64" y="326" width="12" height="12" rx="2" fill="#2ea043"/>
+            <path d="M66 332 l3 3 l6 -7" stroke="#ffffff" stroke-width="1.8" fill="none"/>
+            <text x="84" y="337" fill="#8b949e">設計書を書く</text>
+            <rect x="320" y="324" width="40" height="18" rx="4" fill="#ffffff" stroke="#c8d1da"/><text x="330" y="337" fill="#57606a">編集</text>
+            <rect x="366" y="324" width="40" height="18" rx="4" fill="#ffffff" stroke="#cf222e" stroke-width="2"/><text x="376" y="337" fill="#cf222e">削除</text>
+
+            <rect x="56" y="350" width="358" height="26" rx="4" fill="#ffffff" stroke="#eceff2"/>
+            <rect x="64" y="356" width="12" height="12" rx="2" fill="#ffffff" stroke="#8c97a3"/>
+            <text x="84" y="367" fill="#111418">買い物に行く</text>
+            <rect x="320" y="354" width="40" height="18" rx="4" fill="#ffffff" stroke="#c8d1da"/><text x="330" y="367" fill="#57606a">編集</text>
+            <rect x="366" y="354" width="40" height="18" rx="4" fill="#ffffff" stroke="#cf222e"/><text x="376" y="367" fill="#cf222e">削除</text>
+          </g>
+          <circle cx="428" cy="333" r="9" fill="#0366d6"/>
+          <text x="425" y="337" font-family="sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">1</text>
+          <text x="60" y="396" font-family="sans-serif" font-size="9.5" fill="#8b949e">API: /api/todos | DB: SQLite (todos.db)</text>
+          <rect x="530" y="168" width="260" height="48" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="544" y="188" font-family="sans-serif" font-size="11.5" fill="#111418">② 追加はサーバ側で空タイトルを弾く。</text>
+          <text x="544" y="206" font-family="sans-serif" font-size="11.5" fill="#111418">編集ダイアログ側は弾いていない（B2）</text>
+          <path d="M530 192 L420 188" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="530" y="310" width="260" height="48" rx="8" fill="#ddf4ff" stroke="#3d92e0"/>
+          <text x="544" y="330" font-family="sans-serif" font-size="11.5" fill="#111418">① 完了済み（チェック済み）の TODO は</text>
+          <text x="544" y="348" font-family="sans-serif" font-size="11.5" fill="#111418">削除ボタンがエラーになる（B1）</text>
+          <path d="M530 334 L414 333" stroke="#3d92e0" stroke-width="2" fill="none"/>
+          <rect x="722" y="46" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="734" y="61" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図4：TODO アプリの初期画面。①② が今日直すバグの現れる場所です</figcaption>
+    </figure>
+
+    <p class="note-line">このハンズオンでの再現・動作確認は、すべてブラウザの画面操作で行います。</p>
+
+    <h3 id="ho9-rules">ペアプロの進め方</h3>
+    <p>今日のペアプロは、ドライバとナビゲーターに役割を分ける古典的なスタイルではなく、<strong>2 人が同じ課題にそれぞれチャレンジして、過程を共有し合う</strong>スタイルで進めます。</p>
+    <table>
+      <thead><tr><th>やること</th><th>具体的には</th></tr></thead>
+      <tbody>
+        <tr><td><strong>各自でチャレンジ</strong></td><td>基本は自分の PC で同じ課題に取り組む。プロンプトも修正方針も、自分で考えて投げてみる</td></tr>
+        <tr class="row-hl"><td><strong>共有タイム</strong></td><td>1 つの課題が終わる（または詰まる）ごとに、<strong>どんなプロンプトを投げたか／どんな問題が起きたか／どう解決したか</strong>を画面を見せながら共有する</td></tr>
+        <tr><td><strong>一緒に試行錯誤</strong></td><td>詰まったら抱え込まず声を掛ける。相手のプロンプトを自分の環境で試してみるのも歓迎</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li><strong>思考発話</strong>（think-aloud）：「今こう考えている」「この提案は怪しい気がする」を口に出しながら進めます。黙々と進めるとペアプロになりません</li>
+      <li>共有タイムでは<strong>成功例だけでなく失敗例</strong>を見せ合ってください。「AI にこう騙された」が一番の学びの素材です</li>
+      <li>1 台しか動かない場合は、1 台を<strong>課題ごとに交代</strong>で使い、見ている側は差分レビューと思考発話で参加します</li>
+    </ul>
+    <p class="note-line">3 人 1 組になった場合も進め方は同じです。共有タイムを 3 人で回し、全員が自分の試行錯誤を話してください。</p>
+    <div class="callout note">
+      <span class="callout-title">今日の主役は「共有」です</span>
+      同じ課題でも、<strong>投げるプロンプトも、返ってくる提案も、人によって違います</strong>。その違いこそが今日の教材です。相手のやり方から自分のプロンプトの改善点に気づき、2 人で試行錯誤する時間を通じて「チームで AI 駆動開発を進める」イメージを持ち帰ってください。
+    </div>
+    </section>
+
+    <section class="page" id="p5" data-title="ハンズオン⑨：課題と進め方" data-time="55–110 分">
+<h2 id="ho9">ハンズオン⑨：ペアプロで TODO アプリ改善</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>55 分連続（休憩はハンズオン⑧終了後に取得済み）</span>
+      <span class="session-meta__item"><strong>目的</strong>同じ課題にペアでチャレンジし、Plan と Agent を使い分けながら、プロンプトと試行錯誤の過程を共有し合う</span>
+      <span class="session-meta__item"><strong>形式</strong>2 人 1 組</span>
+    </p>
+
+    <h3 id="ho9-tasks">課題：バグ 2 件と機能改善 3 件</h3>
+    <p>詳細は <code>samples/session3/todo-app-buggy/BUGS_AND_IMPROVEMENTS.md</code> にあります。<strong>まずペアで一緒に読んでください。</strong></p>
+    <table>
+      <thead><tr><th>ID</th><th>症状</th><th>難易度</th><th>推奨モード</th></tr></thead>
+      <tbody>
+        <tr><td><strong>B1</strong></td><td>完了済み TODO が削除できない（アラートに「not found」と表示される）</td><td>★☆☆</td><td>Agent</td></tr>
+        <tr><td><strong>B2</strong></td><td>編集ダイアログで空文字タイトルのまま保存できる</td><td>★☆☆</td><td>Plan → Agent</td></tr>
+      </tbody>
+    </table>
+    <table>
+      <thead><tr><th>ID</th><th>内容</th><th>難易度</th><th>変更が及ぶ範囲</th></tr></thead>
+      <tbody>
+        <tr><td><strong>F1</strong></td><td>期限日（<code>due_date</code>）フィールドの追加。期限切れは赤バッジ</td><td>★★☆</td><td>スキーマ・API・フロント</td></tr>
+        <tr><td><strong>F2</strong></td><td>優先度（<code>priority</code>）の追加と色分け表示</td><td>★★☆</td><td>スキーマ・API・フロント</td></tr>
+        <tr><td><strong>F3</strong></td><td>CSV エクスポート（<code>/api/export.csv</code> の追加）</td><td>★★☆</td><td>API・フロント</td></tr>
+      </tbody>
+    </table>
+    <div class="callout caution">
+      <span class="callout-title">F1〜F3 は Plan モードから始めてください</span>
+      F1〜F3 は<strong>スキーマ・API・フロントなど複数レイヤーの変更が連動</strong>します。Agent モードだけで突っ込むと、スキーマだけ変わってフロントが追いつかず動かなくなりがちです。<strong>まず Plan で全体像を出す</strong>。これが今日いちばん体験してほしい使い分けです。
+    </div>
+
+    <h3 id="ho9-goal">どこまでやれば OK か</h3>
+    <p><strong>必須ライン</strong></p>
+    <ul>
+      <li>B1〜B2 のバグが修正されている</li>
+      <li>F1〜F3 のいずれか 1 件に着手している（<strong>完成しなくても構いません</strong>）</li>
+      <li>ペアで「使ったプロンプト集」をメモしている</li>
+    </ul>
+    <p><strong>ストレッチ（時間に余裕がある場合）</strong></p>
+    <ul>
+      <li>F1〜F3 から複数件に着手する</li>
+    </ul>
+    <div class="callout">
+      <strong>全部終わらないのが普通です。</strong>完成させることより、やってみて気づいたことを持ち帰ることを大切にしてください。Copilot が想定外の修正を提案してくることもあるので、<strong>動作確認と差分レビューに時間を使う方が学びになります</strong>。
+    </div>
+
+    <h3 id="ho9-steps">手順（推奨フロー）</h3>
+    <ol class="steps">
+      <li>ペアで <code>BUGS_AND_IMPROVEMENTS.md</code> を読み、取り組む順序を相談しましょう（5 分）</li>
+      <li>各自 <strong>B1</strong> から着手しましょう（最も簡単です）。ブラウザで再現 → 修正 → 動作確認 → コミット</li>
+      <li>B1 が終わったら（詰まったら途中でも）<strong>共有タイム</strong>：投げたプロンプト・起きた問題・解決方法を画面を見せながら共有しましょう</li>
+      <li><strong>B2</strong> も同じリズムで進めましょう。B2 は <strong>Plan モードで方針を確認してから</strong>実装します。動作確認・コミットのあと、共有タイムを挟みます</li>
+      <li><strong>F1〜F3 のいずれか 1 件</strong>を、<strong>Plan モードで計画を立ててから</strong>着手しましょう（時間内に完成しなくて構いません）。出てきた <code>plan.md</code> をペアで見比べると、同じ要件でも計画が違うことがわかります</li>
+      <li>修正した箇所を 1 つ選び、<strong>AI にセルフレビューさせましょう</strong>（次ページの「AI にコードレビューさせる」）</li>
+      <li>終了 10 分前に手を止め、<strong>使ったプロンプトと気づいたこと</strong>をメモにまとめましょう</li>
+    </ol>
+
+    <h3 id="ho9-progress">進捗の目安</h3>
+    <p>ハンズオン⑨ 開始（55 分地点）からの経過時間で見た目安です。共有タイム込みの時間です。</p>
+    <table>
+      <thead><tr><th>経過時間</th><th>目標（必須レベル）</th></tr></thead>
+      <tbody>
+        <tr><td>12 分</td><td>B1 修正完了 ＋ 共有タイム</td></tr>
+        <tr class="row-hl"><td>30 分</td><td>B2 修正完了 ＋ 共有タイム（<strong>必須ライン到達</strong>）</td></tr>
+        <tr><td>30 分〜</td><td>F1〜F3 のいずれか 1 件に着手（途中で OK）</td></tr>
+        <tr><td>45 分〜</td><td>手を止めて、プロンプトと気づきのメモを作る</td></tr>
+      </tbody>
+    </table>
+    <p class="note-line">30 分の時点で B2 まで終わっていなくても焦らないでください。時間が押してきたら、<strong>Plan モードを使うべきところ（F1〜F3）を優先</strong>して 1 件だけでも体験してから切り上げましょう。<strong>プロセスを学ぶことが目的</strong>です。</p>
+    </section>
+
+    <section class="page" id="p6" data-title="ハンズオン⑨：プロンプトと AI レビュー ／ コミット" data-time="55–110 分">
+<h2 id="ho9-prompts">使うプロンプト</h2>
+    <p>そのままコピーして使えるプロンプトを、課題ごとに用意しています。<strong>コピーして貼るだけで終わらせず、返ってきた差分を自分で読み、共有タイムでペアの結果と見比べる</strong>ところまでをセットにしてください。アレンジして投げてみるのも歓迎です。</p>
+
+    <h3 id="ho9-b1">B1：原因特定 ＋ 類似バグの横断探索（Agent モード）</h3>
+    <p>まず再現します。ブラウザで完了マーク付き（チェック済み）の TODO、たとえば「設計書を書く」の削除ボタンを押し、確認ダイアログで OK を押すと、アラートに「not found」と表示されて削除できません。未完了の TODO は問題なく削除できます。</p>
+    <p>再現できたら、Agent モードで次のプロンプトを送ります。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agent モード）に貼るプロンプト">
+      <button class="copy-btn" data-copy-target="ho9-b1-prompt">コピー</button>
+      <pre id="ho9-b1-prompt">samples/session3/todo-app-buggy 配下の TODO アプリを修正してください。
+
+## 現状
+ブラウザで完了マーク付きの TODO（completed=1）を削除しようとすると、
+アラートに「not found」と表示され、削除できません。
+
+## 期待
+完了状態にかかわらず TODO が削除できる。
+
+## 依頼
+1. 原因を特定し、修正パッチを提案してください
+2. 同じ DELETE エンドポイントに他の潜在バグがないか確認してください
+3. 検索や更新エンドポイントなど、他にも類似のバグがないか
+   横断的にチェックしてください。ただし見つかったものは
+   修正せず、一覧で報告だけしてください（この後の課題で自分で直します）
+4. 修正の単体テストも提案してください（pytest）</pre>
+    </div>
+    <p class="note-line">1 行目のようにディレクトリを指定しておくと、Copilot が配下の <code>server.py</code> や <code>public/</code> のファイルを自分で探して読んでくれます。</p>
+    <div class="callout note">
+      <span class="callout-title">3 番目の依頼を書くかどうかで結果が変わります</span>
+      「<strong>他にも類似のバグがないか横断的に</strong>」と書かないと、Agent は<strong>示した 1 件だけ</strong>を直して終わります。第 2 回の講義④で扱った <strong>Target（成功条件）</strong>を書くかどうかの違いが、そのまま出るところです。プロンプトに書くか書かないかで、AI の探索範囲が変わります。あわせて「<strong>修正せず報告だけ</strong>」と添えているのは、書かないと Agent が B2 に相当するバグまで<strong>この 1 往復でまとめて直してしまう</strong>からです。探索の範囲だけでなく、<strong>どこまで手を動かしてよいか</strong>もプロンプトで制御できます。
+    </div>
+
+    <h3 id="ho9-b2">B2：バリデーションをどこに入れるか（Plan → Agent）</h3>
+    <p>編集ダイアログでタイトルを空文字（または半角スペースのみ）にして保存すると、そのまま保存できてしまいます。<strong>新規追加はサーバ側で弾いているのに、更新は弾いていない</strong>という状態です。</p>
+    <p>「サーバとフロントの<strong>どちらに</strong>バリデーションを入れるか」という設計判断があるので、Plan モードで方針を確認してから実装するのが向いています。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Plan モード）に貼るプロンプト">
+      <button class="copy-btn" data-copy-target="ho9-b2-prompt">コピー</button>
+      <pre id="ho9-b2-prompt">samples/session3/todo-app-buggy 配下の TODO アプリの改修です。
+TODO の編集で、タイトルを空文字や空白のみにしても保存できてしまいます。
+
+要件:
+- サーバ側で title が空文字・空白のみなら 400 を返す
+- フロント側でも送信前にチェックし、ユーザーにメッセージを出す
+- 新規追加（POST）と更新（PUT）で挙動を揃える
+- 既存データには影響しない
+
+実装計画を立ててください。
+- サーバ側とフロント側のどちらに何を入れるか
+- 変更するファイルと関数
+- テスト戦略</pre>
+    </div>
+
+    <details>
+      <summary>F1：期限日を追加する（Plan モード用プロンプト・クリックで展開）</summary>
+      <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Plan モード）に貼るプロンプト">
+        <button class="copy-btn" data-copy-target="ho9-f1-prompt">コピー</button>
+        <pre id="ho9-f1-prompt">samples/session3/todo-app-buggy 配下の TODO アプリに
+「期限日 (due_date)」フィールドを追加したいです。
+
+要件:
+- フィールドは YYYY-MM-DD 形式、optional（既存データは null）
+- 新規追加・編集の UI に &lt;input type="date"&gt;
+- 一覧で期限を表示
+- 期限切れ TODO は赤色のバッジ
+- 既存データのマイグレーションも考慮
+
+実装計画を立ててください。
+- スキーマ変更
+- API 変更（GET / POST / PUT のリクエスト・レスポンス）
+- フロントエンドの変更点
+- テスト戦略</pre>
+      </div>
+      <p class="note-line">F2（優先度）・F3（CSV エクスポート）も同じ形で書けます。<strong>要件 → 実装計画を立ててください → 出してほしい観点</strong>の 3 部構成にすると計画の粒度が安定します。</p>
+    </details>
+
+    <h2 id="ho9-airev">AI にコードレビューさせる</h2>
+    <p>修正が一段落したら、<strong>その修正を PR に出すつもりで AI にセルフレビューさせます</strong>。ペアの目に加えて、もう 1 つ観点を足す使い方です。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat に貼るプロンプト（セルフレビュー）">
+      <button class="copy-btn" data-copy-target="ho9-review-prompt">コピー</button>
+      <pre id="ho9-review-prompt">/review
+samples/session3/todo-app-buggy 配下の server.py にある
+「完了済み TODO が削除できないバグ」に対する修正 PR を
+作るとして、以下の観点でセルフレビューしてください。
+
+1. 修正は最小限か（不要なコード変更がないか）
+2. テストケースは妥当か（境界値・異常系を含むか）
+3. 既存の他エンドポイントに影響しないか
+4. ドキュメント更新は必要か
+
+指摘は重大度（high / medium / low）付きで、修正案も添えてください。</pre>
+    </div>
+    <p class="note-line">1 行目の <code>/review</code> はコードレビューを依頼するビルトインのスラッシュコマンドです。取り組んだ課題に応じて「完了済み TODO が削除できないバグ」の部分を差し替えて使ってください。</p>
+    <div class="callout note">
+      <span class="callout-title">AI レビューは「人のレビューの前段」に置く</span>
+      AI のレビューは<strong>見落としを拾う網</strong>としては優秀ですが、<strong>重要度の判断は人がやる</strong>必要があります。「high と言われたが実は許容範囲」「low と言われたが業務上は致命的」は日常的に起きます。実務では <strong>PR を出す前に <code>/review</code> を通し、そのうえで人のレビューに回す</strong>のが現実的な使い方です。
+    </div>
+
+    <h3 id="ho9-expected">期待される結果</h3>
+    <ul>
+      <li>ペアで<strong>共有タイム</strong>（投げたプロンプト・起きた問題・解決方法の見せ合い）を<strong>最低 2 回</strong>取った</li>
+      <li>B1 が直り、<strong>完了済み TODO をブラウザから削除できる</strong>（削除すると一覧から消える）</li>
+      <li>B2 が直り、<strong>空文字タイトルでは保存できない</strong>（保存しようとすると画面にメッセージが出て、一覧に空タイトルの TODO が増えない）</li>
+      <li>F1〜F3 のいずれか 1 件に着手し、<strong><code>plan.md</code> を作ってから実装に入った</strong></li>
+      <li>AI にセルフレビューさせ、<strong>その指摘を採用するか / しないかをペアで決めた</strong></li>
+      <li>使ったプロンプトのメモが残っている</li>
+    </ul>
+
+    <details>
+      <summary>うまくいかない場合のヒント（クリックで展開）</summary>
+      <table>
+        <thead><tr><th>症状</th><th>対処</th></tr></thead>
+        <tbody>
+          <tr><td>Agent が修正しすぎる</td><td>Undo / Reject で戻し、「<strong>最小限の変更で</strong>」を指示して再依頼</td></tr>
+          <tr><td>サーバ側は直ったのに画面が変わらない</td><td>「<strong>フロント側（<code>public/app.js</code>）の修正も連動して提案してください</strong>」と依頼。ブラウザを完全リロード（<code>Ctrl+Shift+R</code>）</td></tr>
+          <tr><td>F1〜F3 の Plan が複雑すぎる</td><td>「<strong>MVP として最小限の実装に絞ってください</strong>」と範囲を絞る</td></tr>
+          <tr><td>スキーマ変更で DB が壊れた</td><td><code>del todos.db</code> してサーバを再起動（サンプル 5 件が再投入されます）</td></tr>
+          <tr><td>ポート 5000 が使用中</td><td><code>server.py</code> 末尾の <code>port=5000</code> を別の番号に変更して起動</td></tr>
+          <tr><td>編集ダイアログが開かない</td><td>ブラウザを Chrome / Edge の最新版に更新（<code>dialog</code> 要素の対応が必要です）</td></tr>
+        </tbody>
+      </table>
+    </details>
+
+    <div class="callout note">
+      <span class="callout-title">コミット：Session 3 の作業を保存する</span>
+      <ol class="steps">
+        <li>VS Code 上部のメニューから <strong>ターミナル → 新しいターミナル</strong> を選び、画面下部にターミナル欄を開きましょう（ショートカットは Windows／Linux で <code>Ctrl+`</code>、macOS で <code>Control+`</code>）。</li>
+        <li>ターミナルの現在位置が教材リポジトリのフォルダー（<code>github-copilot-training</code>）であることを確認しましょう。<code>todo-app-buggy</code> にいる場合は <code>cd ..\..\..</code> で戻ります。</li>
+        <li>ターミナル欄で次のコマンドを順番に実行しましょう。</li>
+      </ol>
+      <div class="code-block-wrap block--terminal" data-label="ターミナルで実行">
+        <button class="copy-btn" data-copy-target="commit-session3">コピー</button>
+        <pre id="commit-session3">git add .
+git commit -m "session3 completed"</pre>
+      </div>
+      <p class="note-line"><code>git commit</code> の実行後にコミットIDと変更件数が表示されれば保存完了です。バグを 1 件直すごとにコミットしておくと、あとで差分を見返しやすくなります。</p>
+    </div>
+    </section>
+
+    <section class="page" id="p7" data-title="振り返り・社内展開のヒント・参考リンク" data-time="110–120 分">
+<h2 id="review">振り返り（10 分・全体共有）</h2>
+    <p>各ペアで、次の 4 点を 90 秒以内で発表しましょう。</p>
+    <ol>
+      <li>取り組んだバグ・機能（B1〜B2 / F1〜F3）の番号</li>
+      <li>使ったプロンプトで<strong>一番効いたもの</strong>を 1 つ</li>
+      <li><strong>AI が間違えた</strong>場面を 1 つ</li>
+      <li><strong>ペアの相手のやり方から得た気づき</strong>（プロンプトの書き方・進め方など）を 1 つ</li>
+    </ol>
+    <div class="callout note">
+      <span class="callout-title">今日いちばん持ち帰ってほしいこと</span>
+      Plan モードの価値は「<strong>コードが書かれる前に、認識のズレを表に出せる</strong>」ことです。そしてペアプロで体験したのは、<strong>同じ課題でも人によってプロンプトも結果も違う</strong>こと、その違いを共有し合うことが自分の改善につながることでした。この 2 つは、AI をどれだけ使うようになっても変わらず必要になります。
+    </div>
+
+    <h3 id="review-self">自己評価シート</h3>
+    <p>全 3 回を通した到達度を、次の 4 観点で自己評価しましょう（5 段階）。</p>
+    <table>
+      <thead><tr><th>観点</th><th>1（できない） ↔ 5（業務で使える）</th></tr></thead>
+      <tbody>
+        <tr><td>Ask / Agent / Plan モード（と Inline Chat）の使い分け</td><td>☐1　☐2　☐3　☐4　☐5</td></tr>
+        <tr><td>プロンプト設計</td><td>☐1　☐2　☐3　☐4　☐5</td></tr>
+        <tr><td>AI の限界の理解</td><td>☐1　☐2　☐3　☐4　☐5</td></tr>
+        <tr><td>現業への応用イメージ</td><td>☐1　☐2　☐3　☐4　☐5</td></tr>
+      </tbody>
+    </table>
+    <p class="note-line">3 以下が付いた観点は、そこが次に伸ばすところです。この後のアンケートにも同じ観点があるので、回答時の材料にしてください。</p>
+
+    <h3 id="review-survey">アンケート回答</h3>
+    <p>次のアンケートフォームに回答してください。全 3 回を通した満足度・改善要望・感想を共有していただけると、今後の教材改善に役立ちます。</p>
+    <div class="code-block-wrap block--output" data-label="第 3 回 アンケートフォーム URL">
+      <button class="copy-btn" data-copy-target="survey-session3">コピー</button>
+      <pre id="survey-session3">https://forms.cloud.microsoft/r/HCHFfjE5WT</pre>
+    </div>
+    <p class="note-line"><a href="https://forms.cloud.microsoft/r/HCHFfjE5WT" target="_blank" rel="noopener">このリンクからも開けます</a>。</p>
+
+    <h2 id="spread">社内展開のヒント</h2>
+    <p>研修を実務に活かすために、明日からでも始められることを挙げておきます。</p>
+    <ol>
+      <li>業務リポジトリに <code>.github/copilot-instructions.md</code> を <strong>1 枚</strong>書く（第 2 回の講義④の 3 見出しだけで十分です）</li>
+      <li>チームのチャットツール（Slack / Teams など）に「<strong>効いたプロンプト集</strong>」の共有チャンネルを作る</li>
+      <li>PR レビューの<strong>前段</strong>として <code>/review</code> を組み込む</li>
+      <li>新人オンボーディングにこの教材を組み込む</li>
+      <li><strong>失敗例も共有する</strong>。「Copilot に騙された事例」はチームの財産になります</li>
+    </ol>
+    <div class="callout caution">
+      <span class="callout-title">持ち帰るときの注意</span>
+      業務コードを<strong>社外の個人向け AI サービスに貼らない</strong>でください（いわゆるシャドー AI）。会社として契約している環境の中で使うこと、これが前提になります。判断に迷ったら、貼る前に情報システム部門に確認してください。
+    </div>
+
+    <h2 id="summary">全 3 回の総括</h2>
+    <table>
+      <thead><tr><th>回</th><th>キーワード</th><th>身につけたこと</th></tr></thead>
+      <tbody>
+        <tr><td>第 1 回</td><td>触れる</td><td>ゴーストテキストによる補完、構造化プロンプトでの理解、処理フロー図の生成</td></tr>
+        <tr><td>第 2 回</td><td>使い分け</td><td>プロンプトの 5 要素、リファクタ、<code>/fix</code>、テスト生成、Vibe Coding</td></tr>
+        <tr class="row-hl"><td>第 3 回</td><td>協働</td><td>Plan モードによる 2 段階フロー、ペアプロ、AI レビュー</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="closing">おわりに</h2>
+    <p>3 回・計 6 時間、おつかれさまでした。</p>
+    <p>ここから先は、<strong>実務での試行錯誤そのものが一番の学び</strong>になります。今日書いたプロンプトのメモは、そのまま業務で使える資産です。迷ったときは、いつでもこの教材に戻ってきてください。</p>
+    <p>気になったことがあれば、遠慮なく質問してください。フィードバックも歓迎します。<a href="#review-survey">アンケート</a>の回答もお忘れなく。</p>
+
+    <h2 id="links">参考リンク</h2>
+    <ul>
+      <li><a href="https://code.visualstudio.com/docs/copilot/agents/planning" target="_blank" rel="noopener">VS Code：Plan モード公式 Docs</a></li>
+      <li><a href="https://github.blog/changelog/2025-10-28-github-copilot-in-visual-studio-code-gets-upgraded/" target="_blank" rel="noopener">GitHub Changelog：Plan モード関連の公式アップデート（2025-10-28）</a></li>
+      <li><a href="https://code.visualstudio.com/docs/copilot/customization/custom-instructions" target="_blank" rel="noopener">VS Code：Customize chat responses（カスタムインストラクション）</a></li>
+      <li><a href="https://docs.github.com/ja/copilot" target="_blank" rel="noopener">GitHub Copilot 公式 Docs（日本語）</a></li>
+      <li><a href="https://docs.github.com/ja/copilot/about-github-copilot/plans-for-github-copilot" target="_blank" rel="noopener">GitHub Copilot のプラン（Plan モードの利用可否確認用）</a></li>
+    </ul>
+    </section>
+  </main>
+</div>
+
+<a href="#top" class="top-link" title="ページ先頭へ" aria-label="ページ先頭へ">↑</a>
+
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/handout.js"></script>
+</body>
+</html>

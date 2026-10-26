@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>受講前 環境構築手順書（Windows） | GitHub Copilot ハンズオントレーニング</title>
+<link rel="stylesheet" href="assets/handout.css">
+</head>
+<body id="top">
+
+<header class="page-header">
+  <h1>受講前 環境構築手順書（Windows）</h1>
+  <div class="header-meta">
+    <span class="header-meta__item"><strong>対象読者</strong>本トレーニング（全 5 回）を受講される方</span>
+    <span class="header-meta__item"><strong>所要時間</strong>30 分〜1 時間</span>
+    <span class="header-meta__item"><strong>実施時期</strong>第 1 回の受講日までに完了</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="目次">
+    <h2>目次</h2>
+    <!-- 目次は assets/handout.js が section.page から自動生成します -->
+    <ul id="toc-list"></ul>
+  </nav>
+
+  <main>
+    <section class="page" id="p1" data-title="はじめに・全体の流れ" data-time="5 分">
+    <h2 id="about">このドキュメントについて</h2>
+    <p>GitHub Copilot ハンズオントレーニング（全 5 回）を受講するための、<strong>受講前の環境構築手順書</strong>です。</p>
+
+    <h2 id="prereq">前提条件</h2>
+    <table>
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>OS</td><td><strong>Windows 10（21H2 以降）／ Windows 11</strong>。本トレーニングは Windows を前提としています</td></tr>
+        <tr><td>GitHub Copilot ライセンス</td><td><strong>付与済みであることを前提</strong>としています（組織契約 Business / Enterprise）</td></tr>
+        <tr><td>GitHub アカウント</td><td>ライセンスが紐づいているアカウントでサインインできること</td></tr>
+        <tr><td>PC の権限</td><td>ソフトウェアのインストールができること</td></tr>
+        <tr><td>ネットワーク</td><td>インターネット接続できること</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="flow">セットアップ全体の流れ</h2>
+    <table>
+      <thead><tr><th>STEP</th><th>やること</th><th>目安</th></tr></thead>
+      <tbody>
+        <tr><td><strong>STEP 1</strong></td><td>必須ソフトウェアの導入（Python / Git / VS Code / ブラウザ）</td><td>20 分</td></tr>
+        <tr><td><strong>STEP 2</strong></td><td>PowerShell の実行ポリシー設定と VS Code 拡張機能の導入</td><td>10 分</td></tr>
+        <tr><td><strong>STEP 3</strong></td><td>GitHub Copilot のサインインと有効化確認</td><td>5 分</td></tr>
+        <tr><td><strong>STEP 4</strong></td><td>教材の展開と Python 環境の構築</td><td>10 分</td></tr>
+        <tr><td><strong>STEP 5</strong></td><td>動作確認（Python 環境と Copilot が動くかの最低限の確認）</td><td>5 分</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="terminal">本書で使うターミナルについて</h2>
+    <p>本書のコマンドはすべて <strong>PowerShell</strong> を前提としています。次のいずれかで起動してください。</p>
+    <ul>
+      <li>スタートメニューで「<strong>PowerShell</strong>」または「<strong>ターミナル</strong>（Windows Terminal）」を検索して起動</li>
+      <li>STEP 4 以降は <strong>VS Code のターミナル</strong>（メニューの <strong>ターミナル → 新しいターミナル</strong>）でも構いません</li>
+    </ul>
+    </section>
+
+    <section class="page" id="p2" data-title="STEP 1：必須ソフトウェアの導入" data-time="20 分">
+<h2 id="step1">STEP 1：必須ソフトウェアの導入</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>目的</strong>ハンズオンで使う 4 つのソフトウェアを、指定バージョン以上で揃える</span>
+      <span class="session-meta__item"><strong>目安</strong>20 分</span>
+    </p>
+
+    <p>すでに入っている場合は、<strong>バージョンだけ確認</strong>して条件を満たしていれば再インストールは不要です。</p>
+    <table>
+      <thead><tr><th>ツール</th><th>必要バージョン</th><th>入手先</th><th>確認コマンド</th></tr></thead>
+      <tbody>
+        <tr><td>Python</td><td><strong>3.13.14</strong>（64-bit）<br>※3.11 / 3.12 / 3.13 系が既に入っていれば入れ直し不要</td><td><a href="https://www.python.org/downloads/release/python-31314/" target="_blank" rel="noopener">python.org（3.13.14）</a></td><td><code>python --version</code></td></tr>
+        <tr><td>Git</td><td>2.40 以上</td><td><a href="https://git-scm.com/download/win" target="_blank" rel="noopener">git-scm.com</a></td><td><code>git --version</code></td></tr>
+        <tr class="row-hl"><td>VS Code</td><td><strong>1.106 以降（必須）</strong></td><td><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a></td><td><code>code --version</code></td></tr>
+        <tr><td>ブラウザ</td><td>Chrome / Edge </td><td>OS 標準の Edge で可</td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="callout caution">
+      <span class="callout-title">VS Code は 1.106 以降が必須です</span>
+      第 3 回で使う <strong>Plan モード</strong>が VS Code 1.106 で導入された機能のため、これより古いと演習ができません。すでに VS Code をお使いの方も、<strong>必ずバージョンを確認</strong>してください。
+    </div>
+
+    <h3 id="s1-python">1-1. Python</h3>
+    <ol class="steps">
+      <li><a href="https://www.python.org/downloads/release/python-31314/" target="_blank" rel="noopener">Python 3.13.14 のダウンロードページ</a>を開き、ページ下部の Files 表にある <strong>「Windows installer (64-bit)」</strong>をクリックしてインストーラをダウンロードします。</li>
+      <li>インストーラを起動し、最初の画面で <strong>「Add python.exe to PATH」にチェックを入れます</strong>。これを忘れると、あとで <code>python</code> コマンドが見つからなくなります。</li>
+      <li><strong>Install Now</strong> をクリックしてインストールします。
+      </li>
+      <li><strong>PowerShell を開き直して</strong>、次のコマンドでバージョンを確認します。</li>
+    </ol>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell）">
+      <button class="copy-btn" data-copy-target="cmd-python-version">コピー</button>
+      <pre id="cmd-python-version">python --version</pre>
+    </div>
+    <div class="code-block-wrap block--output" data-label="出力例：この形で出れば OK">
+      <pre>Python 3.13.14</pre>
+    </div>
+
+    <h3 id="s1-git">1-2. Git</h3>
+    <ol class="steps">
+      <li><a href="https://git-scm.com/download/win" target="_blank" rel="noopener">git-scm.com</a> から Windows 用インストーラ「Git for Windows/x64 Setup.」をダウンロードします。</li>
+      <li>インストーラの設定は<strong>すべて既定のまま</strong>で問題ありません。改行コードの選択画面では既定の <strong>「Checkout Windows-style, commit Unix-style line endings」</strong>のままで構いません。</li>
+      <li>PowerShell を開き直して、バージョンを確認します。</li>
+    </ol>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell）">
+      <button class="copy-btn" data-copy-target="cmd-git-version">コピー</button>
+      <pre id="cmd-git-version">git --version</pre>
+    </div>
+    <div class="code-block-wrap block--output" data-label="出力例：2.40 以上であれば OK">
+      <pre>git version 2.47.1.windows.1</pre>
+    </div>
+    <p class="note-line">Git 初回設定として、名前とメールアドレスを設定します。<strong>これを飛ばすと STEP 4 の <code>git commit</code> が <code>Please tell me who you are</code> というエラーで失敗します。</strong>すでに設定済みの方（<code>git config --global user.name</code> で名前が表示される方）は不要です。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（初回のみ）">
+      <button class="copy-btn" data-copy-target="cmd-git-config">コピー</button>
+      <pre id="cmd-git-config">git config --global user.name "Your Name"
+git config --global user.email "you@example.com"</pre>
+    </div>
+
+    <h3 id="s1-vscode">1-3. VS Code 1.106 以降</h3>
+    <ol class="steps">
+      <li><a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a> から Windows 用インストーラ（User Installer で可）をダウンロードします。</li>
+      <li>インストーラの「追加タスクの選択」画面で、<strong>「PATH への追加」</strong>と<strong>「エクスプローラーのディレクトリ コンテキスト メニューに『Code で開く』アクションを追加する」</strong>の両方にチェックを入れます。</li>
+      <li>PowerShell を開き直して、バージョンを確認します。</li>
+    </ol>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell）">
+      <button class="copy-btn" data-copy-target="cmd-code-version">コピー</button>
+      <pre id="cmd-code-version">code --version</pre>
+    </div>
+    <div class="code-block-wrap block--output" data-label="出力例：1 行目が 1.106 以上であれば OK">
+      <pre>1.108.2
+b7c4e1f9a2d3c5e8f0a1b2c3d4e5f6a7b8c9d0e1
+x64</pre>
+    </div>
+    <p>すでに VS Code を使っていてバージョンが古い場合は、VS Code を起動して <strong>ヘルプ → 更新の確認</strong>（Help → Check for Updates）からアップデートしてください。</p>
+
+    <h3 id="s1-browser">1-4. ブラウザ</h3>
+    <p>第 2 回のテトリス、第 3 回の TODO アプリの動作確認でブラウザを使います。ChromeまたはEdgeのブラウザが入っているか確認してください。</p>
+
+    <div class="checkpoint">
+      <div class="checkpoint__header">STEP 1 チェックポイント</div>
+      <ul>
+        <li><code>python --version</code> が <strong>3.13.14</strong>（既存環境の場合は 3.11 以上）を表示する</li>
+        <li><code>git --version</code> が <strong>2.40 以上</strong>を表示する</li>
+        <li><code>code --version</code> の 1 行目が <strong>1.106 以上</strong>を表示する</li>
+        <li>Chrome または Edge の最新版が使える</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p3" data-title="STEP 2：PowerShell と VS Code の初期設定" data-time="10 分">
+<h2 id="step2">STEP 2：PowerShell と VS Code の初期設定</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>目的</strong>Python 仮想環境を有効化できるようにし、ハンズオンで使う VS Code 拡張機能を入れる</span>
+      <span class="session-meta__item"><strong>目安</strong>10 分</span>
+    </p>
+
+    <h3 id="s2-policy">2-1. PowerShell の実行ポリシーを変更する</h3>
+    <p>STEP 4 で作る Python 仮想環境は、<code>Activate.ps1</code> というスクリプトで有効化します。Windows の既定設定ではこのスクリプトの実行がブロックされるため、あらかじめ実行ポリシーを変更しておきます。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell）">
+      <button class="copy-btn" data-copy-target="cmd-execpolicy">コピー</button>
+      <pre id="cmd-execpolicy">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</pre>
+    </div>
+    <p>確認メッセージが出たら <strong><code>Y</code></strong> を入力してエンターキーを押します。設定できたかは次のコマンドで確認できます。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（確認）">
+      <button class="copy-btn" data-copy-target="cmd-execpolicy-check">コピー</button>
+      <pre id="cmd-execpolicy-check">Get-ExecutionPolicy -Scope CurrentUser</pre>
+    </div>
+    <div class="code-block-wrap block--output" data-label="出力例">
+      <pre>RemoteSigned</pre>
+    </div>
+    <div class="callout note">
+      <code>-Scope CurrentUser</code> を付けているため、<strong>影響範囲はログインしている自分のユーザーだけ</strong>です。管理者権限も不要です。
+    </div>
+
+    <h3 id="s2-ext">2-2. VS Code 拡張機能を確認する</h3>
+    <p>VS Code を起動し、左端のアクティビティバーから<strong>拡張機能</strong>（四角が 4 つ並んだアイコン）を開きます。<strong>インストールが必要なのは Python だけ</strong>です。</p>
+
+    <h4>インストールするもの</h4>
+    <table>
+      <thead><tr><th>拡張機能</th><th>拡張機能 ID</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr class="row-hl"><td>Python（Microsoft 公式）</td><td><code>ms-python.python</code></td><td>Python の実行・補完・仮想環境の認識</td></tr>
+      </tbody>
+    </table>
+    <p class="note-line">Python 拡張をインストールすると、<code>Pylance</code>（補完）・<code>Python Debugger</code>・<code>Python Environments</code> も自動で一緒に入ります。個別にインストールする必要はありません。</p>
+
+    <h4>確認するだけでよいもの（VS Code に同梱済み）</h4>
+    <table>
+      <thead><tr><th>拡張機能</th><th>拡張機能 ID</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr class="row-hl"><td>GitHub Copilot</td><td><code>GitHub.copilot-chat</code></td><td>コード補完（ゴーストテキスト）とチャット・Ask / Agent / Plan（全回）</td></tr>
+      </tbody>
+    </table>
+    <p>拡張機能タブで <strong>「Copilot」</strong>と検索し、<strong>「インストール済み」と表示されていれば作業は不要</strong>です。VS Code 1.106 以降では補完とチャットが 1 つの拡張に統合され、VS Code 本体に同梱されています。実際に使えるようにする作業は、次の STEP 3（サインイン）で行います。</p>
+    <div class="callout note">
+      以前から VS Code をお使いで、旧バージョンの補完専用拡張（<code>GitHub.copilot</code>）が別に入っている場合も、<strong>そのままで構いません</strong>（アンインストール不要です）。
+    </div>
+
+    <p>Python をインストールしたら、コマンドパレット（<code>Ctrl+Shift+P</code>）を開き、<strong><code>Developer: Reload Window</code></strong> を実行して VS Code を読み込み直してください。</p>
+
+    <div class="checkpoint">
+      <div class="checkpoint__header">STEP 2 チェックポイント</div>
+      <ul>
+        <li><code>Get-ExecutionPolicy -Scope CurrentUser</code> が <code>RemoteSigned</code> を返す</li>
+        <li>拡張機能タブで <strong>Python</strong> が「インストール済み」になっている</li>
+        <li>拡張機能タブで <strong>GitHub Copilot</strong> が「インストール済み」になっている（同梱済みのため、通常は最初から）</li>
+        <li><code>Developer: Reload Window</code> を実行した</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p4" data-title="STEP 3：GitHub Copilot のサインイン" data-time="5 分">
+<h2 id="step3">STEP 3：GitHub Copilot のサインインと有効化確認</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>目的</strong>付与済みライセンスで Copilot にサインインし、当日使う 3 つのモードが選べる状態にする</span>
+      <span class="session-meta__item"><strong>目安</strong>5 分</span>
+    </p>
+    <p>ライセンスは事前に付与されている前提です。ここでは<strong>そのライセンスが自分の VS Code で有効になっていること</strong>を確認します。</p>
+
+    <h3 id="s3-signin">3-1. Copilot にサインインする</h3>
+    <ol class="steps">
+      <li>VS Code の<strong>右下のステータスバー</strong>にある GitHub Copilot アイコンをクリックします。</li>
+      <li>メニューから <strong>Sign in</strong> を選ぶとブラウザが開くので、<strong>ライセンスが付与されている GitHub アカウント</strong>で認証します。</li>
+      <li>VS Code に戻り、右下のアイコンがグレーではなく<strong>有効な状態（青系の表示）</strong>になっていることを確認します。
+        <figure class="shot">
+          <img src="assets/images/copilot-status-bar.png" alt="VS Code 右下のステータスバーに GitHub Copilot アイコンが表示されている画面">
+          <div class="shot__fallback">
+            <svg viewBox="0 0 820 210" role="img" aria-label="VS Code 右下のステータスバーに GitHub Copilot アイコンが表示されている画面のイメージ">
+              <rect x="0" y="0" width="820" height="210" fill="#ffffff"/>
+              <rect x="10" y="10" width="800" height="140" rx="8" fill="#1f2328"/>
+              <rect x="10" y="10" width="800" height="26" rx="8" fill="#2d333b"/>
+              <circle cx="28" cy="23" r="5" fill="#ff5f56"/><circle cx="46" cy="23" r="5" fill="#ffbd2e"/><circle cx="64" cy="23" r="5" fill="#27c93f"/>
+              <text x="88" y="28" font-family="sans-serif" font-size="12" fill="#e6edf3">Visual Studio Code</text>
+              <rect x="10" y="124" width="800" height="26" fill="#0366d6"/>
+              <text x="26" y="141" font-family="sans-serif" font-size="12" fill="#ffffff">main*</text>
+              <text x="560" y="141" font-family="sans-serif" font-size="12" fill="#ffffff">Python 3.13.14</text>
+              <text x="660" y="141" font-family="sans-serif" font-size="12" fill="#ffffff">Ln 1, Col 1</text>
+              <circle cx="768" cy="137" r="10" fill="#ffffff"/>
+              <text x="762" y="141" font-family="sans-serif" font-size="11" font-weight="700" fill="#0366d6">C</text>
+              <path d="M660 178 L762 150" stroke="#bf8700" stroke-width="2" fill="none"/>
+              <rect x="420" y="166" width="250" height="28" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="434" y="185" font-family="sans-serif" font-size="12" fill="#111418">GitHub Copilot アイコン（有効時に表示）</text>
+              <rect x="732" y="16" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="744" y="31" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+            </svg>
+          </div>
+          <figcaption>図1：VS Code 右下ステータスバーの GitHub Copilot アイコン（サインイン済みの状態）</figcaption>
+        </figure>
+      </li>
+    </ol>
+
+    <h3 id="s3-license">3-2. ライセンスが有効か確認する</h3>
+    <p>ブラウザで <a href="https://github.com/settings/copilot" target="_blank" rel="noopener">github.com/settings/copilot</a> を開き、<strong>組織経由のアクセス（Business / Enterprise）</strong>が表示されることを確認します。</p>
+
+    <h3 id="s3-modes">3-3. モードピッカーを確認する</h3>
+    <p>VS Code のサイドバーからチャットアイコン（または <code>Ctrl+Alt+I</code>）で GitHub Copilot Chat を開き、<strong>入力欄の下にあるモードピッカー</strong>を確認します。</p>
+    <table>
+      <thead><tr><th>モード</th><th>使う回</th><th>確認タイミング</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Ask</strong></td><td>第 1 回〜</td><td><strong>第 1 回までに必須</strong></td></tr>
+        <tr><td><strong>Agent</strong></td><td>第 2 回〜</td><td><strong>第 1 回までに必須</strong></td></tr>
+        <tr class="row-hl"><td><strong>Plan</strong></td><td>第 3 回</td><td><strong>第 3 回までに必須</strong>（VS Code 1.106 以降で表示されます）</td></tr>
+      </tbody>
+    </table>
+    <figure class="shot">
+      <img src="assets/images/copilot-chat-modes.png" alt="GitHub Copilot Chat の入力欄下にあるモードピッカー。Ask / Agent / Plan が選択できる">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 260" role="img" aria-label="GitHub Copilot Chat のモードピッカーで Ask / Agent / Plan が選べる画面のイメージ">
+          <rect x="0" y="0" width="820" height="260" fill="#ffffff"/>
+          <rect x="180" y="14" width="460" height="232" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+          <rect x="180" y="14" width="460" height="28" rx="8" fill="#f6f8fa"/>
+          <text x="198" y="33" font-family="sans-serif" font-size="12" fill="#111418">GitHub Copilot Chat</text>
+          <rect x="196" y="56" width="428" height="86" rx="6" fill="#fbfcfd" stroke="#e1e6eb"/>
+          <text x="212" y="80" font-family="sans-serif" font-size="12" fill="#57606a">ここに質問や指示を入力します</text>
+          <rect x="196" y="152" width="120" height="26" rx="13" fill="#eaf0f6" stroke="#0366d6"/>
+          <text x="214" y="169" font-family="sans-serif" font-size="12" font-weight="700" fill="#0366d6">Ask ▾</text>
+          <rect x="196" y="182" width="200" height="60" rx="6" fill="#ffffff" stroke="#d0d7de"/>
+          <text x="212" y="200" font-family="sans-serif" font-size="12" fill="#111418">Ask</text>
+          <text x="212" y="218" font-family="sans-serif" font-size="12" fill="#111418">Agent</text>
+          <text x="212" y="236" font-family="sans-serif" font-size="12" font-weight="700" fill="#0366d6">Plan</text>
+          <path d="M470 236 L400 236" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="470" y="220" width="290" height="32" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="484" y="240" font-family="sans-serif" font-size="12" fill="#111418">第 3 回までに Plan が出ることを確認</text>
+          <rect x="560" y="20" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="572" y="35" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図2：チャット入力欄下のモードピッカー（Ask / Agent / Plan）</figcaption>
+    </figure>
+
+    <div class="checkpoint">
+      <div class="checkpoint__header">STEP 3 チェックポイント</div>
+      <ul>
+        <li>VS Code 右下の Copilot アイコンが有効な状態で表示されている</li>
+        <li><code>github.com/settings/copilot</code> で組織経由のライセンスが確認できる</li>
+        <li>チャットのモードピッカーで <strong>Ask / Agent</strong> が選べる（第 1 回必須）</li>
+        <li>モードピッカーに <strong>Plan</strong> がある（第 3 回必須。無ければ事務局へ連絡）</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p5" data-title="STEP 4：教材の展開と Python 環境の構築" data-time="10 分">
+<h2 id="step4">STEP 4：教材の展開と Python 環境の構築</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>目的</strong>教材 ZIP を展開し、ハンズオンで使う Python の依存パッケージを入れる</span>
+      <span class="session-meta__item"><strong>目安</strong>10 分</span>
+    </p>
+
+    <h3 id="s4-unzip">4-1. 教材 ZIP を展開する</h3>
+    <p>配布された <code>github-copilot-training.zip</code> を、任意のフォルダーに展開します。展開すると <code>github-copilot-training</code> フォルダーができます。</p>
+    <div class="callout caution">
+      <span class="callout-title">展開先の選び方（Windows でのつまずきを避けるため）</span>
+      <ul>
+        <li><strong>パスに日本語やスペースを含めない</strong>（例：<code>C:\handson\</code> の直下が安全です）</li>
+        <li><strong>階層を深くしすぎない</strong>（Windows のパス長制限に引っかかることがあります）</li>
+      </ul>
+      推奨：<code>C:\handson\github-copilot-training</code>
+    </div>
+    <p class="note-line">ZIP を右クリック →「すべて展開」で展開できます。展開前に<strong>右クリック →「プロパティ」で「セキュリティ：このファイルは他のコンピューターから…」の表示があれば「許可する」にチェック</strong>しておくと、ファイルがブロックされずに済みます。</p>
+
+    <h3 id="s4-open">4-2. VS Code でフォルダーを開く</h3>
+    <ol class="steps">
+      <li>VS Code を起動し、<strong>ファイル → フォルダーを開く</strong> から、展開した <code>github-copilot-training</code> フォルダーを選びます。</li>
+      <li>「このフォルダー内のファイルの作成者を信頼しますか?」と聞かれたら、<strong>「はい、作成者を信頼します」</strong>を選びます。信頼しないと Copilot の一部機能が動きません。</li>
+      <li>メニューの <strong>ターミナル → 新しいターミナル</strong> でターミナルを開きます。ここが以降の作業場所になります。</li>
+    </ol>
+    <p class="note-line">VS Code のターミナルが PowerShell 以外（cmd 等）で開く場合は、ターミナル右上の <strong>＋</strong> の横にある「∨」から <strong>PowerShell</strong> を選んで開き直してください。</p>
+
+    <h3 id="s4-venv">4-3. Git 管理の開始と Python 仮想環境の構築</h3>
+    <p>次のコマンドを<strong>上から順に</strong>実行します。<code>git init</code> 以降の 3 行は、第 2 回・第 3 回で「Copilot が何を書き換えたか」を <code>git diff</code> で見比べるための準備です。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell）">
+      <button class="copy-btn" data-copy-target="cmd-setup">コピー</button>
+      <pre id="cmd-setup">cd C:\handson\github-copilot-training
+
+git init
+git add -A
+git commit -m "初期状態"
+
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt</pre>
+    </div>
+    <p class="note-line">1 行目の <code>cd</code> は展開先に合わせて読み替えてください。VS Code でフォルダーを開いた状態のターミナルなら、すでにそのフォルダーにいるので <code>cd</code> は不要です。</p>
+
+    <p>仮想環境が有効になると、ターミナルのプロンプト先頭に <strong><code>(.venv)</code></strong> が付きます。</p>
+    <div class="code-block-wrap block--output" data-label="出力例：仮想環境が有効になった状態">
+      <pre>(.venv) PS C:\handson\github-copilot-training></pre>
+    </div>
+    <p><code>pip install</code> で入るのは次の 4 つです。</p>
+    <table>
+      <thead><tr><th>パッケージ</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>pytest</code></td><td>第 2 回のテスト生成ハンズオンで実行するテストフレームワーク</td></tr>
+        <tr><td><code>pytest-cov</code></td><td>同上（カバレッジ計測）</td></tr>
+        <tr><td><code>flask</code></td><td>第 3 回の TODO アプリ（Web サーバ）と第 4 回の Skill ハンズオン</td></tr>
+        <tr><td><code>ruff</code></td><td>第 5 回の Harness ハンズオン⑥で使うコード検査ツール（バージョン 0.17.0）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note" id="lesson4">
+      <span class="callout-title">第 4 回（Skill ハンズオン）を受講される方へ</span>
+      第 4 回の Skill ハンズオンで Flask アプリを使う方も、この STEP 4 の手順で環境を準備してください。すでに完了している場合は、追加の Flask 導入は不要です。演習では、教材フォルダー直下の <code>.venv</code> を引き続き使用します。
+    </div>
+
+    <div class="callout note">
+      <span class="callout-title">ターミナルを開き直したら、毎回 <code>(.venv)</code> の確認を</span>
+      仮想環境の有効化は<strong>そのターミナルだけ</strong>に効きます。新しいターミナルを開いたときは、次のコマンドで有効化し直してください。<strong>研修当日も同じです。</strong>
+      <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（教材フォルダーの直下で）">
+        <button class="copy-btn" data-copy-target="cmd-activate">コピー</button>
+        <pre id="cmd-activate">.venv\Scripts\Activate.ps1</pre>
+      </div>
+    </div>
+
+    <div class="checkpoint">
+      <div class="checkpoint__header">STEP 4 チェックポイント</div>
+      <ul>
+        <li><code>github-copilot-training</code> フォルダーを VS Code で開いている（左のエクスプローラーに <code>samples</code> と <code>portable</code> が見える）</li>
+        <li>ターミナルのプロンプト先頭に <code>(.venv)</code> が付いている</li>
+        <li><code>pip install -r requirements.txt</code> がエラーなく完了した</li>
+        <li><code>git commit -m "初期状態"</code> が成功した</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p6" data-title="STEP 5：動作確認" data-time="5 分">
+<h2 id="step5">STEP 5：動作確認</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>目的</strong>Python 環境と Copilot が動くことを、最低限だけ確認する</span>
+      <span class="session-meta__item"><strong>目安</strong>5 分</span>
+    </p>
+    <p>ここからのコマンドは、すべて <strong><code>(.venv)</code> が付いたターミナル</strong>で、教材フォルダーの直下で実行してください。</p>
+
+    <h3 id="s5-env">5-1. Python 環境の確認</h3>
+    <p>次の 4 行をまとめて実行します。<strong>バージョンが表示され、最後に小さなテストウィンドウが開けば OK</strong> です。ウィンドウを閉じるとプロンプトに戻ります（閉じるまで次のコマンドは打てません）。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（教材フォルダーの直下）">
+      <button class="copy-btn" data-copy-target="cmd-env-check">コピー</button>
+      <pre id="cmd-env-check">pytest --version
+flask --version
+    python -m ruff --version
+python -m tkinter</pre>
+    </div>
+    <div class="code-block-wrap block--output" data-label="出力例">
+      <pre>pytest 8.3.4
+Python 3.13.14
+Flask 3.1.3
+Werkzeug 3.1.8
+ruff 0.17.0</pre>
+    </div>
+  <p class="note-line"><code>pytest</code>が見つからない、または<code>No module named ruff</code>と出る場合は、<code>(.venv)</code>が付いたターミナルか、STEP 4で依存関係を導入済みかを確認してください。<code>No module named 'tkinter'</code> と出る場合は、Python 公式インストーラで<strong>「tcl/tk and IDLE」を含めて入れ直す</strong>と解決します。</p>
+
+    <h3 id="s5-copilot">5-2. Copilot のチャットが動くか</h3>
+    <p>ここが<strong>いちばん重要な確認</strong>です。実際に Copilot が反応するかを見ます。</p>
+    <ol class="steps">
+      <li>教材フォルダーを開いた VS Code で <code>Ctrl+Alt+I</code> を押してチャットを開き、モードが <strong>Ask</strong> になっていることを確認して、次のプロンプトを送ります。
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat に貼るプロンプト">
+          <button class="copy-btn" data-copy-target="cmd-chat">コピー</button>
+          <pre id="cmd-chat">こんにちは</pre>
+        </div>
+      </li>
+      <li>日本語で返答がくれば、チャットは正常です。</li>
+    </ol>
+
+    <div class="checkpoint">
+      <div class="checkpoint__header">STEP 5 チェックポイント</div>
+      <ul>
+        <li><code>pytest --version</code> と flask のバージョンが表示される</li>
+        <li><code>python -m tkinter</code> でテストウィンドウが開く</li>
+        <li>チャット（Ask）が日本語で応答する</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p7" data-title="参考リンク" data-time="">
+<h2 id="links">参考リンク</h2>
+    <ul>
+      <li><a href="session1.html">第 1 回 受講者ハンドアウト（session1.html）</a></li>
+      <li><a href="session2.html">第 2 回 受講者ハンドアウト（session2.html）</a></li>
+      <li><a href="session3.html">第 3 回 受講者ハンドアウト（session3.html）</a></li>
+      <li><a href="session4.html">第 4 回 受講者ハンドアウト（session4.html）</a></li>
+      <li><a href="session5.html">第 5 回 受講者ハンドアウト（session5.html）</a></li>
+      <li><a href="https://docs.github.com/ja/copilot" target="_blank" rel="noopener">GitHub Copilot 公式 Docs（日本語）</a></li>
+      <li><a href="https://code.visualstudio.com/docs/copilot/setup" target="_blank" rel="noopener">VS Code Copilot Getting Started</a></li>
+    </ul>
+
+    <div class="callout note">
+      <span class="callout-title">準備完了です</span>
+      <ul>
+        <li>うまくいかない項目があれば、<strong>エラーメッセージをそのままコピーして</strong>ご連絡ください</li>
+        <li>当日は、この手順書と同じフォルダーにある <code>session1.html</code> をブラウザで開いて進めます</li>
+      </ul>
+    </div>
+    </section>
+
+  </main>
+</div>
+
+<a href="#top" class="top-link" title="ページ先頭へ" aria-label="ページ先頭へ">↑</a>
+
+<script src="assets/handout.js"></script>
+</body>
+</html>

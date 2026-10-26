@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": "powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ./scripts/check-operation.ps1",
+        "windows": "powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -File ./scripts/check-operation.ps1",
+        "timeout": 10
+      }
+    ]
+  }
+}

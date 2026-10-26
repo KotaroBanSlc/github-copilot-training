@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 5 回：Harnessによる制御・検証とinstructionsの活用 | 受講者ハンドアウト</title>
+<link rel="stylesheet" href="assets/handout.css">
+</head>
+<body id="top">
+
+<header class="page-header">
+  <h1>第 5 回：Harnessによる制御・検証とinstructionsの活用</h1>
+  <div class="header-meta">
+    <span class="header-meta__item"><strong>所要時間</strong>120分（休憩5分を含む）</span>
+    <span class="header-meta__item"><strong>形式</strong>講義・ハンズオン</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="目次">
+    <h2>目次</h2>
+    <!-- 目次は assets/handout.js が section.page から自動生成します -->
+    <ul id="toc-list"></ul>
+  </nav>
+
+  <main>
+    <section class="page" id="p1" data-title="導入" data-time="0–10 分">
+    <h2 id="purpose">この教材の目的</h2>
+    <p>第4回で学んだSkillを振り返り、AIエージェントの操作や結果を制御・検証する「Harness」の考え方を学びます。</p>
+    <p>本教材では、Harnessが必要な理由、構成要素、Skillとの違いを扱います。ハンズオンでは、ガードレールによる操作の判定、instructionsによる変数名の規則の反映を順に確かめます。最後に、ruffと独自の検証Scriptを組み合わせたHarnessの課題に取り組みます。</p>
+
+    <h2 id="goals">第5回の到達目標</h2>
+    <p>第5回の終了時点で、次のことを目指します。</p>
+    <ol class="goals">
+      <li><strong>役割を説明する</strong>: SkillとHarnessの関係、AIへの指示と機械的な検証の違い、instructions・hooks・scriptsなどの役割を説明できる。</li>
+      <li><strong>ガードレールで操作の許可・拒否を判定する</strong>: 危険な操作を防ぐガードレールの役割を説明し、操作の実行前に許可・拒否を判定するScriptを使って、許可対象と拒否対象の判定結果を確認できる。</li>
+      <li><strong>ユースケースに特化したinstructionsを整備する</strong>: 特定の作業や対象ファイルに必要なルールをinstructionsとして整理し、適用範囲を定め、AIの編集に反映されたかを差分で確認・改善できる。</li>
+      <li><strong>ruffで機械的・決定論的にチェックする</strong>: 既存のLinterであるruffを中心に、Pythonコードが規約を満たすかを機械的・決定論的にチェックする仕組みを構成し、正常時・違反時・修正後の結果を確認できる。</li>
+    </ol>
+
+    <h2 id="agenda">第5回のアジェンダ</h2>
+    <p>全体で120分を想定しています。（休憩5分を含む）</p>
+    <table>
+      <thead><tr><th>時間</th><th>内容</th><th>所要</th></tr></thead>
+      <tbody>
+        <tr><td>0～10分</td><td>導入：第4回の振り返り、第5回の概要</td><td>10分</td></tr>
+        <tr><td>10～25分</td><td>講義③ Harness概要</td><td>15分</td></tr>
+        <tr><td>25～35分</td><td>講義④ SkillとHarnessの違い</td><td>10分</td></tr>
+        <tr><td>35～50分</td><td>ハンズオン④ ガードレール判定Scriptの直接実行</td><td>15分</td></tr>
+        <tr><td>50～55分</td><td><strong>休憩</strong></td><td>5分</td></tr>
+        <tr><td>55～80分</td><td>ハンズオン⑤ instructionsによる変数名の規則</td><td>25分</td></tr>
+        <tr><td>80～110分</td><td>ハンズオン⑥ 検証Harnessの作成</td><td>30分（目安）</td></tr>
+        <tr><td>110～120分</td><td>振り返り、Q&amp;A、アンケート</td><td>10分</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="review4">第4回の振り返り</h2>
+    <p>第4回では、Skillを「特定の目的に応じた知識、手順、判断基準を再利用できる形にしたもの」として学びました。</p>
+    <p>通常のプロンプトがその場の依頼を伝えるのに対し、Skillは繰り返す作業の進め方をあらかじめ整理します。依頼内容がSkillの目的や利用条件に合う場合に選択され、中心となる指示や、必要な資料・スクリプトが段階的に参照されます。</p>
+    <p>第4回のハンズオンでは、Todoアプリのファイルを読む順番と理由を案内する<code>project-file-guide</code>と、不要コードの候補提示・許可後の削除・削除前後の動作比較を扱う<code>safe-code-cleanup</code>を題材にしました。どちらも、<strong>特定のタスクに必要な知識・手順・判断基準をまとめ、繰り返し使える形にしたSkill</strong>です。</p>
+    <p>SkillはAIへ作業方法を伝え、期待する結果へ近づけるために役立ちます。ここで、第5回につながる問いを考えます。</p>
+    <div class="callout">
+      <p>Skillにルールを書くだけで、AIが必ずそのルールを守ると言えるでしょうか。</p>
+    </div>
+    <p>自然言語の指示はAIの判断を導きますが、すべての状況で同じ動作を保証するものではありません。第5回では、この課題を制御と検証の仕組みから考えます。</p>
+
+    </section>
+
+    <section class="page" id="p2" data-title="講義③：Harness概要" data-time="10–25 分">
+    <h2 id="lecture3">講義③ Harness概要</h2>
+
+    <h3 id="l3-terms">用語の前提</h3>
+    <p>この教材で使うHarnessは、GitHub Copilotの単一の公式機能名ではありません。AIエージェントを支える複数の仕組みを整理するための用語として使用し、広い意味と狭い意味を区別します。この区分は研修内の整理であり、共通の公式定義ではありません。</p>
+
+    <h3 id="l3-broad-narrow">広い意味と狭い意味のHarness</h3>
+    <h4>広い意味のHarness</h4>
+    <p>広い意味では、instructions、prompts、skills、agents、hooks、scriptsなどを組み合わせ、AIエージェントの作業全体を支える仕組みを指します。「何を参照するか」「どのように作業するか」「何を実行できるか」「結果をどう確かめるか」までが対象です。</p>
+    <p>例えば、instructionsで規約を伝え、Skillで実装手順を案内し、レビュー担当のagentへ確認を依頼します。さらに、hookからテスト用Scriptを呼び出して結果を返すことで、作業の案内から検証までをつなぎます。</p>
+
+    <h4>狭い意味のHarness</h4>
+    <p>この研修では、後続のハンズオンとのつながりから、特に次の仕組みを中心に扱います。</p>
+    <div class="callout">
+      <p>HookやScriptなどを利用し、AIの操作や出力を機械的・決定論的に検証する仕組み。</p>
+    </div>
+    <p>危険なコマンドを実行前に検出するガードレールや、変更されたコードを機械的に検査する仕組みが該当します。</p>
+    <div class="callout note">
+      <span class="callout-title">ガードレールとは</span>
+      <p>危険な操作や出力、情報漏洩を起こさないように制御する安全装置の総称です。</p>
+    </div>
+    <p>また、AIが作成した成果物に対して、テストの実行、静的解析、フォーマットチェック、命名規則の確認などを行い、一定の品質基準を満たしているかを自動的に検証する仕組みも含まれます。</p>
+
+    <h3 id="l3-why">Harnessが必要な理由</h3>
+    <p>生成AIの出力には揺らぎがあります。同じ依頼でも、会話の流れや参照する情報などによって、回答や操作が変わる場合があります。</p>
+    <p>instructionsやプロンプトでルールを伝えることは重要ですが、自然言語による指示だけでは、ルールが毎回必ず守られるとは限りません。特に、次のような場面では機械的な制御や検証が必要です。</p>
+    <ul>
+      <li>危険な操作を実行前に止める</li>
+      <li>コードやファイルの変更結果を客観的に確認する</li>
+      <li>問題を検出した場合に、AIへ修正を促す</li>
+      <li>品質、安全性、再現性を人手だけに依存させない</li>
+    </ul>
+    <p>たとえば「テストを実行してください」と伝えるだけでなく、実際にテストが成功したかを終了コードで判定します。指示に加えて確認方法を用意することで、期待する状態へ近づけやすくなります。</p>
+
+    <h3 id="l3-elements">Harnessを構成する要素</h3>
+    <p>広い意味のHarnessには、AIエージェントの作業環境を支える次の要素が含まれます。</p>
+    <ul>
+      <li><strong>instructions</strong>: 対象範囲で継続的に参照させる指示やルールです。プロジェクトの規約や、ビルド・テスト方法などを伝えます。</li>
+      <li><strong>prompts</strong>: 特定の作業を開始するための再利用可能な依頼です。目的、入力、期待する出力を定型化します。</li>
+      <li><strong>skills</strong>: 特定の目的に必要な知識、手順、判断基準をまとめます。依頼内容に合う作業方法を提供します。</li>
+      <li><strong>agents</strong>: 目的や役割に応じたエージェントの設定です。担当する仕事、利用する指示、使用できるツールなどを定めます。</li>
+      <li><strong>hooks</strong>: エージェントの実行中にあるタイミングを契機として、処理や検証を動かす仕組みです。例えば、ツール実行前の許可・拒否の判定や、実行後の成果物検査に利用します。</li>
+      <li><strong>scripts</strong>: 条件判定、ファイル検査、テスト実行などを機械的に行うプログラムです。hookやCIから呼び出すことも、単独で実行することもできます。</li>
+    </ul>
+    <figure class="shot">
+      <img src="assets/images/harness-github-structure.png" alt="VS Codeのエクスプローラーで、.github配下のcopilot-instructions.md、agents、hooks、prompts、scripts、skillsを展開した最小構成の配置例">
+      <figcaption>各要素を1つずつ配置した例。</figcaption>
+    </figure>
+
+    <h3 id="l3-prob-det">確率的な指示と決定論的な検証</h3>
+    <h4>確率的な働きかけ</h4>
+    <p>instructionsやプロンプトは、自然言語でAIへルールを伝えます。AIの判断を望ましい方向へ導けますが、すべての状況で必ず同じ行動になるとは限りません。</p>
+    <p>たとえば、instructionsに次のルールを記載します。</p>
+    <div class="callout">
+      <p>Pythonコードでは型ヒントを付けてください。</p>
+    </div>
+    <p>この指示により型ヒントが付く可能性は高まりますが、追加漏れや不十分な型が残る可能性はあります。</p>
+
+    <h4>決定論的な検証</h4>
+    <p>Script、テスト、静的解析などは、定めた条件に従って結果を判定します。同じ入力と条件であれば、原則として同じ判定になります。</p>
+    <p>先ほどの例では、型チェッカーや検査Scriptを実行し、型ヒントの有無や型の問題を機械的に確認します。違反を検出した場合は、処理を止めたり、結果をAIへ返して修正を促したりできます。</p>
+    <p>instructionsが役に立たないわけではありません。instructionsは望ましい作業方法を先に伝え、hookやScriptは重要な条件を機械的に確かめます。両者を組み合わせることで、AIが適切に作業しやすくなり、問題も検出しやすくなります。</p>
+
+    <h3 id="l3-flow">Harnessが動作する基本的な流れ</h3>
+    <p>以下は、Hookで自動化する場合の参考説明です。今回のハンズオンではHookを使用せず、instructionsに従うAIがScriptを直接実行します。</p>
+    <p>Hookは、AIエージェントの作業中に発生するイベントをきっかけに処理を実行します。Hookが発火するタイミングは1つではなく、代表的なイベントには次のものがあります。</p>
+    <table>
+      <thead><tr><th>イベント</th><th>発火するタイミング</th><th>用途の例</th></tr></thead>
+      <tbody>
+        <tr><td><code>PreToolUse</code></td><td>AIがツールを実行する直前</td><td>操作の許可・拒否を判定する（ガードレール）</td></tr>
+        <tr><td><code>PostToolUse</code></td><td>ツールの実行が成功した直後</td><td>編集結果の検証やフォーマッターを実行し、必要に応じてAIへ返す</td></tr>
+        <tr><td><code>SessionEnd</code></td><td>セッションが終了するとき</td><td>作業ログの保存や一時ファイルの削除などの後処理を行う</td></tr>
+      </tbody>
+    </table>
+
+    <h4>実行前のガードレール</h4>
+    <pre class="mermaid">flowchart TD
+    plan[AIがツールの操作案を作る] --&gt; pre[PreToolUse]
+    pre --&gt; guard[Hookが判定Scriptを実行]
+    guard --&gt; decision{操作を許可するか}
+    decision --&gt;|許可| execute[ツールを実行する]
+    decision --&gt;|拒否| cancel[実行せず中止する]</pre>
+    <p>危険な操作は、ツールを実行する前の判定で拒否します。実行後の検証では、すでに実行された操作を未実行の状態には戻せません。</p>
+
+    <h4>実行後の成果物検証</h4>
+    <p>次の図は、編集後に検証Scriptを実行し、違反の内容と修正指示をAIへ返す処理まで設定した例です。</p>
+    <pre class="mermaid">flowchart TD
+    request[ユーザーがAIへ作業を依頼] --&gt; work[AIがinstructionsやSkillを参照してファイルを編集]
+    work --&gt; event[編集ツール実行後のイベントが発生]
+    event --&gt; hook[Hookが検証Scriptを実行]
+    hook --&gt; result{検証結果に問題があるか}
+    result --&gt;|問題なし| complete[検証を完了する]
+    result --&gt;|問題あり| feedback[検証結果と修正指示をAIへ返す]
+    feedback --&gt; fix[AIが問題を修正する]
+    fix --&gt; event</pre>
+    <p>役割を分けると、<strong>instructionsやSkillは作業の案内、Hookは検証を動かすきっかけ、Scriptは条件の判定</strong>です。例えば、デバッグ用の <code>print</code> を残さないようAIへ伝え、変更後にScriptで実際のコードを調べます。違反があれば、修正後にもう一度検証します。</p>
+
+    <h3 id="l3-minimal">Harnessを要素ごとに整備する</h3>
+    <p>Harnessを一度に整備しようとすると、検証ルール、実行タイミング、結果の返し方などをまとめて設計する必要があります。最初からすべてをそろえるのではなく、<strong>必要な要素を1つ用意し、動かしながら不足する要素を追加していく</strong>進め方で構いません。</p>
+    <p>例えば、「デバッグ用の <code>print</code> 文が残っていないかをチェックしたい」なら、次のように整備できます。</p>
+    <ol>
+      <li><strong>まず検査を用意する。</strong>ruffの既存ルールや小さな検証Scriptで、1つのPythonファイルに<code>print()</code>が残っていないかを調べます。手動で実行し、呼び出しがある場合とない場合で正しく判定できるかを確かめます。</li>
+      <li><strong>AIの作業に組み込む。</strong>instructionsに、コード変更後に検証コマンドを実行し、違反があれば修正・再検証する手順を加えます。</li>
+      <li><strong>必要なら自動実行を加える。</strong>編集後のHookから同じ検証コマンドを呼び出し、結果をAIへ返す処理を追加します。</li>
+      <li><strong>別の検査を追加する。</strong>未使用importの検査やテストも同じ入口から実行できるようにし、必要に応じて検査対象を増やします。</li>
+    </ol>
+
+    <h3 id="l3-best">Harness構築のベストプラクティス</h3>
+    <p>最小構成を継続して使うために、次の設計・運用の観点を押さえます。</p>
+    <table>
+      <thead><tr><th>区分</th><th>設計・運用で押さえること</th></tr></thead>
+      <tbody>
+        <tr><td>小さな検査と既存ツールの再利用</td><td>既存のテスト・Linter・Formatterを優先し、追加する検査は必要な責務だけに絞ります。実行時間を短く保ち、AI専用の複雑な検証基盤を増やしすぎないようにします。</td></tr>
+        <tr><td>正常・異常・誤検知の確認</td><td>正常系・異常系・コメントや文字列などの誤検知確認用のケースを保存し、ルール変更時にも再実行します。これにより、判定の変更による見逃しや誤検知を確認できます。</td></tr>
+        <tr><td>失敗時の案内と運用</td><td>メッセージに対象箇所・原因・対応方法を示します。誤検知時の例外は対象と理由を明記し、ルール・設定・Scriptをバージョン管理とレビューの対象にします。</td></tr>
+      </tbody>
+    </table>
+    <p>たとえば「検証に失敗しました」だけでは、次の行動が分かりません。「対象ファイルで <code>print</code> を検出しました。<code>print</code> の呼び出しを取り除いて再実行してください」のように、原因と対応を示します。</p>
+    <p>Hookの設定は対応するイベントや返却形式に合わせます。一方、検査するルールやScriptの分割はプロジェクトで決めます。設定と検証ロジックを分けて管理すると、変更時の確認箇所が明確になります。</p>
+    </section>
+
+    <section class="page" id="p3" data-title="講義④：SkillとHarnessの違い" data-time="25–35 分">
+    <h2 id="lecture4">講義④ SkillとHarnessの違い</h2>
+
+    <h3 id="l4-roles">役割の違い</h3>
+    <p>Skillは、AIに「どのように作業するか」を伝えます。特定の目的に必要な知識、手順、判断基準を提供し、AIが作業を進める際の案内になります。</p>
+    <p>Harnessは、広い意味ではAIが作業するための実行環境、指示、制御、検証、フィードバックを提供します。この研修で中心に扱う狭い意味では、AIの操作や結果が「条件を満たしているか」を機械的に制御・検証します。</p>
+    <p>Skillだけで結果を保証することは難しく、Harnessだけでは望ましい設計や修正方法まで十分に伝えられません。それぞれの得意な役割を組み合わせます。</p>
+
+    <h3 id="l4-compare">SkillとHarnessの比較表</h3>
+    <table>
+      <thead><tr><th>観点</th><th>Skill</th><th>Harness</th></tr></thead>
+      <tbody>
+        <tr><td>主な目的</td><td>特定の作業の進め方を再利用する</td><td>AIの作業全体を支え、操作や結果を制御・検証する</td></tr>
+        <tr><td>AIへの働きかけ</td><td>知識、手順、判断基準を伝えて判断を導く</td><td>広い意味では環境とフィードバックを提供し、狭い意味では条件を機械的に判定する</td></tr>
+        <tr><td>主な内容</td><td><code>SKILL.md</code></td><td>広い意味ではinstructions、prompts、skills、agents、hooks、scriptsなど。狭い意味では主にhooks、scripts、テスト、静的解析など</td></tr>
+        <tr><td>実行タイミング</td><td>依頼がSkillの目的や利用条件に合うとき</td><td>構成により異なる。セッション開始時、ツール実行前後、ファイル変更後など</td></tr>
+        <tr><td>判定の性質</td><td>自然言語を基にした確率的な判断が中心</td><td>狭い意味では、定義した条件による決定論的な判定が中心</td></tr>
+        <tr><td>得意なこと</td><td>複数の手順、設計判断、レビュー観点、修正方法を案内する</td><td>危険な操作の防止、テスト実行、規則違反の検出、結果のフィードバック</td></tr>
+        <tr><td>苦手なこと</td><td>ルールの順守や結果を毎回保証すること</td><td>曖昧な要件や、状況に応じた高度な判断を単独で行うこと</td></tr>
+        <tr><td>具体例</td><td>Python APIを実装・レビューする手順を提供するSkill</td><td>危険なコマンドを止めるhook、型チェックを実行するScript</td></tr>
+      </tbody>
+    </table>
+    <p>表のHarness列には、AIエージェントの作業全体を支える広い意味と、機械的な制御・検証を行う狭い意味の両方が含まれます。個別の比較では、どちらの意味かを確認します。</p>
+
+    <h2 id="lecture-summary">講義部分のまとめ</h2>
+    <ul>
+      <li><strong>役割を説明する</strong>: Skillやinstructionsは作業を案内し、Hookは処理を動かすきっかけ、Scriptは条件の判定を担います。これらを組み合わせて作業を支えるのが広い意味のHarnessです。</li>
+      <li><strong>ガードレールで操作の許可・拒否を判定する</strong>: 危険な操作を防ぐため、操作の実行前にScriptで許可・拒否を判定します。</li>
+      <li><strong>ユースケースに特化したinstructionsを整備する</strong>: 作業や対象ファイルに必要な規則と適用範囲を整理し、AIの編集への反映を差分で確認します。</li>
+      <li><strong>ruffで機械的・決定論的にチェックする</strong>: ruffと必要な独自Scriptを組み合わせ、規約違反の検出と修正後の再検証を行います。AIへ規則を伝えることと、成果物を機械的に確かめることを組み合わせます。</li>
+    </ul>
+    </section>
+
+    <section class="page" id="p5" data-title="ハンズオン④：ガードレール判定Scriptの直接実行" data-time="35–50 分">
+    <h2 id="ho4">ハンズオン④ ガードレール判定Scriptの直接実行</h2>
+
+    <h3 id="execution-environment">今回の実行方式</h3>
+    <p>GitHub Copilot（VS Code）のフックはプレビュー機能です。</p>
+    <p>POCの環境ではプレビュー機能をOFFにしているため、フックを使わず、Skillの手順の中でスクリプトを起動して点検や変換を行っています。本教材のハンズオンでは、instructionsに従ってAIが判定Scriptや検証Scriptを直接実行します。</p>
+    <p>フックの設定ファイルは、参考資料としてリポジトリに残しています。プレビュー機能を利用できる環境では、利用環境に合わせた設定と動作確認を行うことで、フックによる自動起動へ切り替えられます。</p>
+
+    <h3 id="ho4-purpose">目的</h3>
+    <p>AIにコマンドの実行を依頼したとき、実行前にScriptで操作の可否を判定し、AIがその結果に従う流れを確認します。「危険な操作を避けてください」という指示に加えて、ガードレールで機械的に判定する役割を体験します。</p>
+
+    <h3 id="ho4-overview">概要</h3>
+    <p>配布済みのinstructionsと判定Scriptを使い、通常の表示コマンド、演習用の拒否ルールに該当する表示コマンド、安全なファイル読み取りの3つをAIへ順に依頼します。判定結果が<code>allow</code>・<code>deny</code>・<code>allow</code>となり、許可された操作だけが実行されるかを、ツール実行履歴とログで確認します。</p>
+    <p>コードや設定の作成・変更は行いません。判定Scriptの実行は、instructionsに従うAIが行います。</p>
+
+    <h3 id="ho4-folder">作業フォルダと配布済みファイル</h3>
+    <p>次のフォルダをVS Codeで単独で開きます。</p>
+    <div class="code-block-wrap block--output" data-label="開くフォルダ">
+      <button class="copy-btn" data-copy-target="ho4-folder-path">コピー</button>
+      <pre id="ho4-folder-path">github-copilot-training/samples/session5/guardrail</pre>
+    </div>
+    <p>以下のパスとコマンドは、<code>guardrail</code>を作業ディレクトリとします。</p>
+    <table>
+      <thead><tr><th>配布済みファイル</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td><code>.github/copilot-instructions.md</code></td><td>操作前に判定Scriptを直接実行し、判定結果に従うようAIへ指示するinstructions</td></tr>
+        <tr><td><code>scripts/check-operation.ps1</code></td><td>演習用の禁止操作を判定し、確認結果を記録する判定Script</td></tr>
+        <tr><td><code>templates/guardrail.json</code></td><td>Hookからの呼び出し方を確認する参考資料。自動検出されない配置で配布する</td></tr>
+        <tr><td><code>README.md</code></td><td>利用環境と配布物の説明。Hookの発火手順は今回は使用しない</td></tr>
+      </tbody>
+    </table>
+    <p>配布済みの<code>.github/copilot-instructions.md</code>には、判定Scriptを直接呼び出す手順が記載されています。判定Scriptが実行されると、<code>guardrail</code>直下に<code>guardrail-events.jsonl</code>が自動生成され、判定結果が追記されます。ログファイルを手作業で作成する必要はありません。</p>
+
+    <h3 id="ho4-premise">演習の前提</h3>
+    <p>検証Script自体の作成はハンズオン⑥で扱います。</p>
+    <p>この演習では、実際に危険な操作は行いません。</p>
+    <p>判定Scriptには、演習用のルールとして「<code>HARNESS_DEMO_BLOCK</code>という目印を含むコマンドは拒否する」と定義されています。この目印を含むコマンドは、それ自体に危険性がなくても、演習用ルールに該当するため<code>deny</code>（拒否）と判定されます。</p>
+    <p>配布済みのinstructionsには、AIに対して次の手順が記載されています。</p>
+    <ol class="steps">
+      <li>依頼されたコマンドを実行する前に、判定Scriptで実行してよいか確認する。</li>
+      <li><code>allow</code>（許可）ならコマンドを実行する。</li>
+      <li><code>deny</code>（拒否）なら実行せず、理由を報告する。</li>
+    </ol>
+    <p>受講者は、チャットでコマンドの実行だけを依頼します。判定の手順は、毎回指示する必要はありません。</p>
+
+    <h3 id="ho4-learn">学習内容</h3>
+    <ul>
+      <li>判定手順をプロンプトに書かなくても、instructionsに従ってAIが判定Scriptを直接呼び出すことを確認する</li>
+      <li>実行予定のコマンドをJSONで渡し、<code>allow</code>と<code>deny</code>を確認する</li>
+      <li>判定理由を、Scriptの出力とログで確認する</li>
+      <li><code>deny</code>なら実行せず、<code>allow</code>なら指定された安全な操作を実行する</li>
+      <li>一度<code>deny</code>が返ってもチャット全体が実行禁止になるわけではなく、依頼する操作ごとに判定されることを確認する</li>
+    </ul>
+
+    <h3 id="ho4-step1">手順1 Harnessの判定条件とinstructionsを確認する（4分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li><code>github-copilot-training/samples/session5/guardrail</code>を単独で開き、<code>README.md</code>と上の配布済みファイルがそろっていることを確認します。</li>
+      <li><code>scripts/check-operation.ps1</code>を開き、標準入力のJSONから<code>tool_name</code>と<code>tool_input.command</code>を読み取り、<code>HARNESS_DEMO_BLOCK</code>が含まれると<code>deny</code>を返すことを確認します。</li>
+      <li>配布元と内容を確認してワークスペースを信頼します。<code>.github/copilot-instructions.md</code>を開き、次の2点が記載されていることだけを確認します。このファイルは変更しません。
+        <ul>
+          <li>依頼されたコマンドを実行する前に、判定Scriptを直接実行する</li>
+          <li><code>allow</code>なら依頼されたコマンドを実行し、<code>deny</code>なら実行せずに判定理由と対象コマンドを実行していないことを報告する</li>
+        </ul>
+      </li>
+    </ol>
+    <p>今回使用する操作と期待する判定は、次のとおりです。</p>
+    <table>
+      <thead><tr><th>確認内容</th><th>Scriptへ入力データとして渡すコマンド</th><th>ログの<code>case</code></th><th>期待する<code>decision</code></th></tr></thead>
+      <tbody>
+        <tr><td>直接実行の確認</td><td><code>Write-Output 'HARNESS_DEMO_READY'</code></td><td><code>ready-probe</code></td><td><code>allow</code></td></tr>
+        <tr><td>禁止操作の模擬</td><td><code>Write-Output 'HARNESS_DEMO_BLOCK'</code></td><td><code>blocked-demo</code></td><td><code>deny</code></td></tr>
+        <tr><td>安全な読み取り</td><td><code>Get-Content ./README.md -Encoding UTF8 -TotalCount 5</code></td><td><code>safe-read</code></td><td><code>allow</code></td></tr>
+      </tbody>
+    </table>
+    <h4>④と⑥で異なる判定の読み方</h4>
+    <table>
+      <thead><tr><th>演習</th><th>判定に使うもの</th><th>終了コード<code>0</code>の意味</th></tr></thead>
+      <tbody>
+        <tr><td>④ 操作前の判定</td><td>JSONの<code>permissionDecision</code>（<code>allow</code>・<code>deny</code>）と、今回のログの<code>case</code>・<code>decision</code></td><td>許可とは限らない。拒否や入力不備でも<code>0</code>を返す</td></tr>
+        <tr><td>⑥ 変更後の検証</td><td>終了コード（<code>0</code>: 成功、<code>1</code>: 違反、<code>2</code>: 検証エラー）と検証メッセージ</td><td>登録した検証がすべて成功する。ruffだけのH1・H2は<code>Passed 1/1</code>、独自Scriptを追加したH3は<code>Passed 2/2</code></td></tr>
+      </tbody>
+    </table>
+    <p><code>Write-Output</code>は、指定した文字列をターミナルに表示するだけのPowerShellのコマンドです。ファイルやリポジトリを変更しないため、今回は実害のない模擬コマンドとして使用します。判定Scriptは、表示する文字列が<code>HARNESS_DEMO_READY</code>か<code>HARNESS_DEMO_BLOCK</code>かによって<code>allow</code>と<code>deny</code>を切り替えます。</p>
+    <p><code>HARNESS_DEMO_BLOCK</code>は、強制pushなどの禁止操作を表す演習用の目印です。入力文字列自体は無害ですが、<code>deny</code>の判定後はこの表示コマンドも実行しません。実際のGitコマンドへ置き換えないでください。</p>
+    <p>手順2以降のプロンプトでは、コマンドの実行だけを依頼します。判定Scriptの実行や判定結果への従い方は書きません。instructionsが自動で読み込まれ、AIが判定Scriptを実行して結果に従うかを、ツール実行履歴とログで確認します。</p>
+
+    <h3 id="ho4-step2">手順2 通常の依頼でHarnessの動作を確認する（3分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li>新しいAgentチャットを開き、次のプロンプトを入力します。判定Scriptやinstructionsには触れません。
+        <div class="code-block-wrap block--prompt" data-label="Agentチャットに入力するプロンプト">
+          <button class="copy-btn" data-copy-target="ho4-prompt-ready">コピー</button>
+          <pre id="ho4-prompt-ready">Write-Output 'HARNESS_DEMO_READY'</pre>
+        </div>
+      </li>
+      <li>ツール実行履歴で、表示コマンドより先に判定Scriptが実行され、<code>permissionDecision: allow</code>が返ったことを確認します。その後、別の呼び出しで<code>HARNESS_DEMO_READY</code>が出力されたことを確認します。</li>
+      <li><code>guardrail-events.jsonl</code>を開き、今回の時刻の<code>case: ready-probe</code>、<code>decision: allow</code>を確認します。古い記録だけなら手順3へ進みません。</li>
+    </ol>
+
+    <h4>困ったとき</h4>
+    <ul>
+      <li>ログが生成・追記されない場合は、実行履歴とScriptの出力を確認し、拒否判定の確認へは進みません。</li>
+      <li><code>case: other</code>の場合は、JSONの<code>tool_name</code>が<code>run_in_terminal</code>か、<code>tool_input.command</code>が指定した文字列かを確認します。判定Scriptは修正しません。</li>
+      <li>JSONの解析エラーやPowerShellのエラーがある場合は、入力形式と作業ディレクトリを確認します。</li>
+    </ul>
+
+    <h3 id="ho4-step3">手順3 禁止操作の判定と実行の見送りを確認する（4分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li>手順2で判定Scriptの実行と今回のログを確認できた場合だけ、同じチャットへ次のプロンプトを入力します。
+        <div class="code-block-wrap block--prompt" data-label="同じチャットに入力するプロンプト">
+          <button class="copy-btn" data-copy-target="ho4-prompt-block">コピー</button>
+          <pre id="ho4-prompt-block">Write-Output 'HARNESS_DEMO_BLOCK'</pre>
+        </div>
+      </li>
+      <li>ツール実行履歴で、判定Scriptが実行され、<code>permissionDecision: deny</code>と<code>BLOCK:</code>から始まる理由が返ることを確認します。入力データとして文字列が含まれることと、表示コマンド自体の実行は区別します。</li>
+      <li>AIが表示コマンドを実行せず、再試行や別コマンドへの置き換えもせずに、判定理由と対象コマンドを実行していないことを報告したことを確認します。</li>
+      <li>ログの今回の<code>case: blocked-demo</code>、<code>decision: deny</code>、<code>reason</code>を確認します。</li>
+    </ol>
+
+    <p>入力不備による<code>deny</code>は、禁止操作を正しく検出した結果とは区別します。期待した<code>case</code>の今回のログがなければ、未確認として停止します。</p>
+    <p>判定理由に「実行を止めた」という表現が含まれていても、Script自体は判定結果を返すだけです。実際に対象コマンドを実行しなかったことは、AIのツール実行履歴で確認します。</p>
+
+    <h3 id="ho4-step4">手順4 拒否後の別の依頼が改めて判定されることを確認する（4分）</h3>
+    <p>手順3で<code>deny</code>が返った同じチャットで、別の操作を依頼します。拒否の判定は依頼した操作ごとに行われ、一度拒否されてもチャット全体が実行禁止になるわけではないことを確認します。</p>
+    <p>手順4は拒否された操作を別の方法で実現するための手順ではありません。手順3とは独立した新しい依頼として扱います。</p>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li>同じチャットへ次のプロンプトを入力し、READMEを読み取るコマンドの実行を依頼します。
+        <div class="code-block-wrap block--prompt" data-label="同じチャットに入力するプロンプト">
+          <button class="copy-btn" data-copy-target="ho4-prompt-read">コピー</button>
+          <pre id="ho4-prompt-read">Get-Content ./README.md -Encoding UTF8 -TotalCount 5</pre>
+        </div>
+      </li>
+      <li>ツール実行履歴で、判定Scriptが先に実行されて<code>allow</code>が返り、その後に別のツール呼び出しでREADMEの先頭5行が表示されることを確認します。</li>
+      <li>ログで今回の<code>case: safe-read</code>、<code>decision: allow</code>を確認します。</li>
+      <li>手順3で<code>deny</code>が返った後でも、今回の依頼は改めて判定されて<code>allow</code>となり、実行されたことを確認します。</li>
+    </ol>
+
+    <h4>困ったとき</h4>
+    <ul>
+      <li>READMEが見つからない場合は、ターミナルの作業ディレクトリが<code>guardrail</code>か確認します。</li>
+      <li><code>deny</code>の場合は、今回の入力文字列と理由を確認します。対象コマンドは実行しません。</li>
+    </ul>
+
+    <h3 id="ho4-complete">演習の完了条件</h3>
+    <div class="checkpoint">
+      <ul>
+        <li>3ケースの判定JSONと今回のログが、<code>allow</code>・<code>deny</code>・<code>allow</code>で一致する</li>
+        <li>許可後だけ安全なコマンドが実行され、拒否された表示コマンドは実行されていない</li>
+        <li>配布物は変更せず、Scriptによるログの追記だけが行われている</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p6" data-title="休憩 ／ ハンズオン⑤：instructionsによる変数名の規則" data-time="50–80 分">
+    <h2 id="break">休憩</h2>
+    <p>ここで5分間の休憩を取ります。</p>
+    <p>休憩後は、instructionsで指定した変数名の規則がAIの編集に反映されるかを確認します。</p>
+
+    <h2 id="ho5">ハンズオン⑤ instructionsによる変数名の規則</h2>
+
+    <h3 id="ho5-folder">作業フォルダと配布済みファイル</h3>
+    <p>次のフォルダをVS Codeで単独で開きます。</p>
+    <div class="code-block-wrap block--output" data-label="開くフォルダ">
+      <button class="copy-btn" data-copy-target="ho5-folder-path">コピー</button>
+      <pre id="ho5-folder-path">github-copilot-training/samples/session5/instructions_camelcase_variables</pre>
+    </div>
+    <p>以下のパスとコマンドは、<code>instructions_camelcase_variables</code>を作業ディレクトリとします。検証ScriptとPythonの仮想環境は使用しません。</p>
+    <table>
+      <thead><tr><th>配布済みファイル</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td><code>.github/instructions/camelcase-variables.instructions.md</code></td><td>変数名をキャメルケースにする規則を記載した、事前配置済みのinstructionsファイル</td></tr>
+        <tr><td><code>templates/camelcase-variables.instructions.md</code></td><td>講師が配置済みinstructionsと照合するための参考資料。演習中はコピー・変更しない</td></tr>
+        <tr><td><code>sales_report.py</code></td><td>AIに関数を追加させる対象。既存の変数名はスネークケース</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="ho5-premise">演習の前提</h3>
+    <p><code>copilot-instructions.md</code>ではなく、事前配置済みのこのハンズオン専用のinstructionsファイル（<code>.instructions.md</code>）で、「変数名はキャメルケースで書く」という規則をAIへ伝えます。受講者によるinstructionsの作成・コピーは不要です。規則に触れない通常の依頼で<code>sales_report.py</code>をAIに編集させます。<strong>受講者はPythonファイルを手で書き換えません。</strong></p>
+    <p>Pythonでは、変数名をスネークケース（例：<code>total_amount</code>）で書くのが一般的です（PEP 8）。配布コードもスネークケースで書いているため、instructionsがなければ、AIは既存の書き方に合わせてスネークケースを使うと考えられます。この演習では、あえて一般的な慣例と異なるキャメルケース（例：<code>totalAmount</code>）を規則にし、instructionsの影響を差分から読み取りやすくしています。実務でPythonの変数名をキャメルケースにすることを推奨するものではありません。</p>
+    <div class="callout">
+      <p>instructionsはAIへの指示であり、規則の遵守を保証しません。反映されたかどうかは、編集の差分で確認します。</p>
+    </div>
+
+    <h3 id="ho5-learn">学習内容</h3>
+    <ul>
+      <li>用途を絞ったinstructionsファイルの配置先（<code>.github/instructions/</code>）を確認する</li>
+      <li><code>applyTo</code>で、instructionsの適用対象が指定されていることを確認する</li>
+      <li>規則をプロンプトに書かなくても、AIの編集に反映されるかを確認する</li>
+      <li>編集の差分を確認し、反映されなかった場合や規則の対象外まで変更された場合を記録する</li>
+    </ul>
+
+    <h3 id="ho5-diff">copilot-instructions.mdとの違い</h3>
+    <table>
+      <thead><tr><th>種類</th><th>配置先</th><th>適用される範囲</th><th>向いている内容</th></tr></thead>
+      <tbody>
+        <tr><td><code>copilot-instructions.md</code></td><td><code>.github/copilot-instructions.md</code></td><td>ワークスペースのすべての依頼</td><td>プロジェクト全体に共通する方針</td></tr>
+        <tr><td>instructionsファイル</td><td><code>.github/instructions/*.instructions.md</code></td><td><code>applyTo</code>に一致するファイルの作成・変更時。<code>description</code>が作業に合う場合に読み込まれることもある</td><td>特定のファイル・言語・フォルダだけの規則</td></tr>
+      </tbody>
+    </table>
+    <p>配置済みのinstructionsファイルには<code>applyTo: "**/sales_report.py"</code>と指定されており、<code>sales_report.py</code>の作成・変更が適用対象です。受講者が設定を書き換える必要はありません。<code>applyTo</code>のパスは、ワークスペースのルートを基準に判定されます。</p>
+
+    <h3 id="ho5-rules">今回の規則</h3>
+    <p>lowerCamelCaseは、1語目を小文字、2語目以降の先頭を大文字にする書き方です。</p>
+    <table>
+      <thead><tr><th>対象</th><th>規則</th><th>例</th></tr></thead>
+      <tbody>
+        <tr><td>新しく追加する変数（ローカル変数・ループ変数・関数の引数）</td><td>lowerCamelCase</td><td><code>regionTotals</code>、<code>salesRecords</code></td></tr>
+        <tr><td>1語の変数</td><td>すべて小文字</td><td><code>total</code></td></tr>
+        <tr><td>関数名・定数名</td><td>対象外。既存に合わせ、関数名はスネークケース、定数名は大文字のスネークケース</td><td><code>find_top_region</code>、<code>SAMPLE_SALES_RECORDS</code></td></tr>
+        <tr><td>既存の変数名・関数名</td><td>変更しない</td><td><code>total_amount</code>、<code>calculate_line_amount</code></td></tr>
+        <tr><td>辞書のキー</td><td>変更しない</td><td><code>"unit_price"</code></td></tr>
+      </tbody>
+    </table>
+    <p>関数名と既存の名前を対象外にしたのは、変数名の規則だけが反映されたかを区別して確認するためです。</p>
+
+    <h3 id="ho5-step1">手順1 対象ファイルと配置済みのinstructionsを確認する（4分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li><code>github-copilot-training/samples/session5/instructions_camelcase_variables</code>を単独で開き、<code>.github/instructions/</code>内のinstructionsを含め、配布済みファイルがそろっていることを確認します。</li>
+      <li><code>sales_report.py</code>を開き、既存の変数名（<code>sales_record</code>、<code>total_amount</code>、<code>line_amount</code>など）と辞書のキー（<code>"unit_price"</code>など）がスネークケースであることを確認します。</li>
+      <li><code>.github/instructions/camelcase-variables.instructions.md</code>を開き、次の点を確認します。このファイルは変更しません。
+        <ul>
+          <li>先頭の<code>---</code>で囲まれた部分（フロントマター）に、<code>name</code>、<code>description</code>、<code>applyTo</code>がある</li>
+          <li><code>applyTo</code>が<code>"**/sales_report.py"</code>になっている</li>
+          <li>本文に、今回の規則と、PEP 8や既存コードの書き方よりこの規則を優先することが書かれている</li>
+        </ul>
+      </li>
+    </ol>
+
+    <h4>困ったとき</h4>
+    <ul>
+      <li>配置済みのinstructionsファイルが見つからない場合は、受講者が作成・コピーせず、講師へ配布物の確認を依頼します。</li>
+    </ul>
+
+    <h3 id="ho5-step2">手順2 配置済みのinstructionsが認識されていることを確認する（2分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li>コマンドパレット（<code>Ctrl+Shift+P</code>）で<code>Chat: Open Customizations</code>を実行し、「指示」の「ワークスペース」欄に、対象のinstructions（<code>CamelCase変数名</code>）が表示されることを確認します。一覧への表示は、VS Codeがファイルを見つけたことを示すだけで、規則が守られることまでは示しません。
+        <figure class="shot">
+          <img src="assets/images/camelcase-variables-instructions-list.png" alt="エージェントのカスタマイズ画面の「指示」で、「ワークスペース」欄にCamelCase変数名（.github\instructions\camelcase-variables.instructions.md）が表示されている">
+        </figure>
+      </li>
+    </ol>
+
+    <h4>困ったとき</h4>
+    <ul>
+      <li>一覧に表示されない場合は、演習フォルダを単独で開いているか、ファイル名が<code>.instructions.md</code>で終わっているか、フロントマターの<code>---</code>が前後にそろっているかを確認します。</li>
+      <li><code>Chat: Open Customizations</code>が見つからない場合は、手順1で配置と<code>applyTo</code>を確認したうえで次へ進みます。画面上の認識状態は未確認として記録します。</li>
+    </ul>
+
+    <h3 id="ho5-step3">手順3 通常の依頼で関数を追加させる（7分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li><code>sales_report.py</code>をエディターで開いた状態で新しいAgentチャットを開き、次のプロンプトを入力します。変数名の規則には触れません。
+        <div class="code-block-wrap block--prompt" data-label="Agentチャットに入力するプロンプト">
+          <button class="copy-btn" data-copy-target="ho5-prompt-top-region">コピー</button>
+          <pre id="ho5-prompt-top-region">sales_report.pyに、地域ごとの売上金額を集計し、売上金額が最も大きい地域名と金額を返す関数を追加してください。売上データが空の場合はNoneを返してください。</pre>
+        </div>
+      </li>
+      <li>編集の差分で、次の点を確認します。例の名前と、AIが付けた名前が異なっていても構いません。
+        <table>
+          <thead><tr><th>確認対象</th><th>期待する結果</th><th>例</th></tr></thead>
+          <tbody>
+            <tr><td>新しく追加された変数・引数</td><td>lowerCamelCase、または1語の小文字</td><td><code>regionTotals</code>、<code>salesRecords</code>、<code>total</code></td></tr>
+            <tr><td>新しく追加された関数名</td><td>スネークケース</td><td><code>find_top_region</code></td></tr>
+            <tr><td>既存の変数名・関数名</td><td>変更されていない</td><td><code>total_amount</code>、<code>calculate_total_amount</code></td></tr>
+            <tr><td>辞書のキー</td><td>変更されていない</td><td><code>"region"</code>、<code>"unit_price"</code></td></tr>
+          </tbody>
+        </table>
+      </li>
+      <li>AIの報告にある変数名の一覧と、差分で実際に追加された変数名が一致するかを確認します。</li>
+    </ol>
+
+    <h4>困ったとき</h4>
+    <ul>
+      <li>スネークケースの変数が追加された場合は、その事実を記録します。instructionsは遵守を保証しないため、このような結果も起こり得ます。プロンプトに規則を書き足して再試行しません。</li>
+      <li>関数名や既存の変数名までキャメルケースに変更された場合は、規則の対象外まで変更された例として記録します。</li>
+      <li>AIがPEP 8を理由に規則へ従わなかった場合も、その応答を記録します。</li>
+    </ul>
+
+    <h3 id="ho5-step4">手順4 新しいチャットで別の関数を追加させる（5分）</h3>
+    <h4>操作</h4>
+    <ol class="steps">
+      <li><code>sales_report.py</code>をエディターで開いた状態で新しいAgentチャットを開き、次のプロンプトを入力します。
+        <div class="code-block-wrap block--prompt" data-label="Agentチャットに入力するプロンプト">
+          <button class="copy-btn" data-copy-target="ho5-prompt-filter">コピー</button>
+          <pre id="ho5-prompt-filter">sales_report.pyに、単価が指定した金額以上の売上データだけを抽出して返す関数を追加してください。</pre>
+        </div>
+      </li>
+      <li>手順3の表と同じ観点で、今回の編集の差分とAIの報告を確認します。</li>
+      <li>手順3のチャット履歴を引き継がない別のチャットでも、新しく追加した変数名に規則が反映されるかを比較します。</li>
+    </ol>
+
+    <h4>困ったとき</h4>
+    <ul>
+      <li>手順3で追加されたキャメルケースのコードを、AIがファイル内の書き方として参考にした可能性もあります。2回とも規則に合うだけで、instructionsだけの効果とは断定しません。</li>
+      <li>結果が手順3と異なる場合も、そのまま記録します。</li>
+    </ul>
+
+    <h3 id="ho5-step5">手順5 instructionsの役割と検証Scriptとの違いを整理する（5分）</h3>
+    <h4>確認するポイント</h4>
+    <ul>
+      <li>instructionsファイルは<code>applyTo</code>で適用するファイルを絞れる。全体に適用する<code>copilot-instructions.md</code>と使い分ける</li>
+      <li>規則をinstructionsファイルに置くと、依頼のたびにプロンプトへ書かなくても、AIの編集に反映できる</li>
+      <li>instructionsは遵守を保証しないため、編集の差分で規則が反映されたかを確認する</li>
+      <li>次のハンズオン⑥では、ruffと独自の検証Scriptで規約を機械的に判定する。AIへ規則を伝えることと、成果物が規則を満たすかを判定することの違いを比べる</li>
+    </ul>
+
+    <h3 id="ho5-complete">演習の完了条件</h3>
+    <div class="checkpoint">
+      <ul>
+        <li>配置済みの<code>applyTo</code>から、適用対象と対象外を説明できる</li>
+        <li>2回の編集差分と変数名の一覧を比較し、規則に合った点・合わなかった点を記録できている</li>
+        <li>既存の名前や辞書のキーを保持できたかも確認し、配置済みのinstructionsは変更していない</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p7" data-title="ハンズオン⑥：課題と進め方" data-time="80–110 分">
+    <h2 id="ho6">ハンズオン⑥ 検証Harnessの作成</h2>
+
+    <h3 id="ho6-folder">作業フォルダ</h3>
+    <p>次のフォルダをVS Codeで単独で開きます。</p>
+    <div class="code-block-wrap block--output" data-label="開くフォルダ">
+      <button class="copy-btn" data-copy-target="ho6-folder-path">コピー</button>
+      <pre id="ho6-folder-path">github-copilot-training/samples/session5/generate_harness</pre>
+    </div>
+    <p>以下のパスとコマンドは、<code>generate_harness</code>を作業ディレクトリとします。</p>
+    <p>PowerShellで<code>..\..\..\.venv\Scripts\Activate.ps1</code>を実行し、教材フォルダー直下の共通<code>.venv</code>を有効化してください。</p>
+
+    <h3 id="ho6-tasks">課題：検証を作り、開発作業へHarnessを組み込む</h3>
+    <p><code>order_summary.py</code>を対象に、<strong>検証Scriptを作る → AIの編集作業に組み込む → 独自の検証を追加する</strong>の順で、同じHarnessを段階的に整備します。</p>
+    <p>下の仕様を満たすものをCopilotと作成してください。このページには完成したプロンプトを載せていません。依頼文、確認に使う入力、期待と違った場合の直し方を自分で考えます。</p>
+    <table>
+      <thead><tr><th>課題</th><th>自分で考えること</th></tr></thead>
+      <tbody>
+        <tr><td>H1 検証Scriptの作成</td><td>後からAIが呼び出せるように、ruffを実行する<code>scripts/check_all.py</code>を作る。どんな仕様を依頼し、正常時と違反時の結果をどう確かめるか</td></tr>
+        <tr><td>H2 開発作業への組み込み</td><td><code>.github/copilot-instructions.md</code>に、対象コードの編集後に検証・修正・再検証する手順を追記する。実行コマンド、実行タイミング、結果への従い方をどう伝えるか</td></tr>
+        <tr><td>H3 独自検証の追加</td><td>デバッグ用の<code>print()</code>を残さない独自Scriptを作り、検証スクリプトへ追加する。同じ開発作業で両方が検証されるか、検出後も依頼の目的を保って修正されるか</td></tr>
+        <tr><td>＋α 誤検知の確認</td><td>時間がある方向け。違反に似ているが違反ではない入力を考え、コメント・文字列と実際の呼び出しを区別できるか試す</td></tr>
+      </tbody>
+    </table>
+    <div class="callout note">
+      <span class="callout-title">ruffとは</span>
+      <p>Pythonコードを実行せずに、未使用のimportや書き方の規約違反を検出するLinter（静的解析ツール）です。<code>pyproject.toml</code>に設定を書くことで、プロジェクト固有のチェックルールをruffに伝えられます。</p>
+    </div>
+
+    <h3 id="ho6-spec">作るものと完成条件</h3>
+    <ul>
+      <li><strong>H1</strong>：<code>scripts/check_all.py</code>を1つのコマンドで実行でき、<code>order_summary.py</code>に対するruffの結果を表示する。対象コードは実行・変更しない。成功は終了コード<code>0</code>、規約違反は<code>1</code>、検証を実行できない場合は<code>2</code>とする。</li>
+      <li><strong>H2</strong>：AIが対象コードを変更した直後に同じコマンドを実行する。違反時は対象コードを修正して再検証し、検証エラー時は成功扱いせず止まる。各回の出力と終了コードを報告する。</li>
+      <li><strong>H3</strong>：<code>scripts/check_no_print.py</code>を作り、<code>check_all.py</code>からruffと一緒に実行する。この演習では<code>print(...)</code>の直接呼び出しを違反とし、対象行と修正方法を表示する。コメント・文字列中の<code>print</code>は違反にしない。</li>
+    </ul>
+
+    <h3 id="ho6-premise">守る範囲と作業条件</h3>
+    <ul>
+      <li><strong>作成・改良するもの</strong>：H1の検証の入口、H2のinstructions、H3の独自Script。構築中は仕様を満たすために改善してよい。開始時のinstructionsには作業範囲だけがあり、変更後の検証手順はH2で自分で追加する。</li>
+      <li><strong>動作確認の対象</strong>：<code>order_summary.py</code>の変更はAIへの依頼で行う。受講者はPythonファイルを手で書き換えず、集計処理と<code>format_summary</code>の戻り値の形式は保つ。</li>
+      <li><strong>保持するもの</strong>：<code>pyproject.toml</code>、他の演習、既存の変更。検出された違反を消すために規則を緩めたり、<code># noqa</code>や別名呼び出しで回避したりしない。<code>templates/</code>は演習後の比較用とし、作成時は参照・コピーしない。</li>
+    </ul>
+
+    <h3 id="ho6-steps">進め方：作成・組み込み・追加の順に進める</h3>
+    <ol class="steps">
+      <li><strong>仕様を整理する。</strong>対象コード・ruff設定・完成条件を読み、依頼内容と確認ケースを決める。</li>
+      <li><strong>H1：検証の入口を作る。</strong>ruffを実行するScriptを作成させ、正常時と違反時の判定を確認する。違反を修正し、成功へ戻す。</li>
+      <li><strong>H2：編集後の検証を組み込む。</strong>instructionsに検証コマンド・失敗時の対応・報告内容を追記する。新しいAgentチャットで変更だけを依頼し、検証・修正・再検証の履歴を確かめる。</li>
+      <li><strong>H3：独自検証を追加する。</strong>独自Scriptを同じ入口へ組み込み、両検証の成功を確認する。デバッグ出力を追加させ、検出・修正・再検証を確かめる。</li>
+      <li><strong>改善・記録する。</strong>判定はScript、実行・報告はinstructionsを見直して再試行する。依頼文・予想と実測・変更点を記録する。</li>
+    </ol>
+
+    <details id="ho6-hints">
+      <summary>詰まったときのヒント（判定・実行履歴の確認）</summary>
+      <ul>
+        <li>H1は「対象・使うツール・出力・終了コード・変更しないもの」を依頼に含めると仕様を伝えやすくなります。</li>
+        <li>H2は「いつ・どのコマンドを・失敗したらどうするか」を分けて書きます。検証の内容そのものは、設定とScriptに置きます。</li>
+        <li>H3は、実際の関数呼び出しとコメント・文字列を区別する方法をCopilotへ相談します。検証Script自身が使う<code>print()</code>は検査対象外です。</li>
+        <li>最終ファイルだけでなく途中の履歴を見ます。最初から違反がなかったのか、検出後に修正されたのかを区別してください。検証を追加で依頼した場合も、その事実を記録します。</li>
+      </ul>
+    </details>
+
+    <h3 id="ho6-goal">どこまでやればOKか</h3>
+    <p><strong>必須ライン</strong></p>
+    <ul>
+      <li><strong>H1</strong>：仕様からruffを実行するScriptを作成し、正常時の<code>0</code>と違反時の<code>1</code>を確認した。</li>
+      <li><strong>H2</strong>：自分で検証手順をinstructionsへ記述し、新しいチャットでの編集から検証・修正・再検証までを確認した。</li>
+      <li><strong>H3</strong>：独自Scriptを同じ入口へ追加し、ruffと両方が実行され、独自ルールによる検出・修正・再検証までを確認した。</li>
+    </ul>
+    <div class="callout note">
+      <span class="callout-title">最後の成功だけで判断しない</span>
+      違反が検出されたか、何を直したか、再検証されたかを確認します。狙った違反が入らなかった場合や検証されなかった場合は、成功扱いせず、未確認の点と次に試すことを残してください。
+    </div>
+
+    <h3 id="ho6-stretch">＋α課題：誤検知しないか確かめる（時間がある方向け）</h3>
+    <p>コメントや文字列に含まれる<code>print</code>と、実際の呼び出しを区別できるか試してください。変更前に判定を予想し、H3の結果と比べます。誤検知した場合は独自Scriptを改善し、同じ入力で再確認します。違反を含む入力を見逃すようになっていないかも確かめてください。</p>
+
+    <h3 id="ho6-progress">進捗の目安</h3>
+    <p>ハンズオン⑥開始（80分地点）からの目安です。H1〜H3に30分を充てます。</p>
+    <table>
+      <thead><tr><th>経過時間</th><th>目安</th></tr></thead>
+      <tbody>
+        <tr><td>0～3分</td><td>仕様と確認ケースを整理する</td></tr>
+        <tr><td>3～10分</td><td>H1でruffの検証Scriptを作成し、単体で確かめる</td></tr>
+        <tr><td>10～18分</td><td>H2でinstructionsへ手順を追記し、編集作業で試す</td></tr>
+        <tr><td>18～30分</td><td>H3で独自Scriptを追加し、同じ開発作業で確かめる</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="ho6-complete">振り返りと解答例</h3>
+    <p>「H1のScriptを開発作業で使うためにH2で何を書いたか」「H3で検証を追加しても同じ入口を使えたか」「期待と違った場合、Scriptとinstructionsのどちらを直したか」を振り返ってください。＋αに取り組んだ場合は、誤検知をどう確かめ、改善したかも説明してください。</p>
+    <p><a href="#ho6-answer">次ページの解答例・解説</a>は、作業後の比較と講師の説明に使います。プロンプトの文面ではなく、どの検証が何を検出し、修正と再検証につながったかを比べてください。</p>
+    </section>
+
+    <section class="page" id="p7-answer" data-title="ハンズオン⑥：解答例・解説" data-time="演習後の解説">
+    <h2 id="ho6-answer">ハンズオン⑥ 解答例・解説</h2>
+
+    <h4 id="ho6-harness">構成と判定の確認例</h4>
+    <table>
+      <thead><tr><th>要素</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td>H1 検証の入口</td><td><code>scripts/check_all.py</code>でruffを呼び出し、結果と終了コードを返す</td></tr>
+        <tr><td>H2 instructions</td><td><code>.github/copilot-instructions.md</code>に、編集後に同じ入口を実行し、違反なら修正・再検証する手順を追加する</td></tr>
+        <tr><td>H3 検証の拡張</td><td><code>scripts/check_no_print.py</code>を作り、<code>check_all.py</code>からruffと一緒に実行する</td></tr>
+        <tr><td>ruff</td><td><code>pyproject.toml</code>のE・W・F・Iに従い、未使用importやimportの並び順などを検出する</td></tr>
+      </tbody>
+    </table>
+    <p>規約そのものは設定とScriptに持たせ、instructionsには実行手順を書きます。ruffにも<code>print</code>を検出するT201がありますが、この演習では独自Scriptとの役割を比べるため有効にしていません。実務では既存のLinterで判定できるルールを優先します。</p>
+
+    <h4 id="ho6-step0">手順0 作業範囲を決めるinstructionsを作る</h4>
+    <p>最初に、検証Harnessの構築中に変更してよい範囲を定義します。配布済みの開始状態は、次のような依頼で作成できます。すでにファイルがある場合は削除・作り直しをせず、内容を確認してH1へ進みます。この時点では検証Scriptがないため、編集後の検証手順はまだ書きません。</p>
+    <div class="code-block-wrap block--prompt" data-label="開始時のinstructionsを作成するプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-scope-prompt">コピー</button>
+      <pre id="ho6-scope-prompt">generate_harness内で検証Harnessを段階的に作るため、.github/copilot-instructions.mdを作成してください。
+・作業範囲をこのフォルダ内に限定し、他の演習と既存の変更を保持する。
+・H1ではscripts/check_all.pyにruffだけの検証を作る。H2ではこのinstructionsに検証手順を追記する。H3ではscripts/check_no_print.pyを追加して同じ入口へ組み込む。
+・上記の構築・改善は明示的な依頼に従う。対象コードや設定を勝手に変更しない。
+・order_summary.pyの変更は動作確認を依頼された場合だけとし、集計処理とformat_summaryの戻り値を保つ。対象コード自体は実行しない。
+・検証だけを依頼された場合や修正しないよう指定された場合は、違反を検出しても対象コードを変更しない。
+・pyproject.tomlと既存のtemplatesは保持し、templatesを参照・コピーして実装しない。規約の弱体化、# noqaや別名呼び出しによる回避はしない。
+・教材ルートの共通.venvを使い、このフォルダに仮想環境を作らない。Hookや既存の安全対策の設定は変更しない。
+・実行した検証の出力、直後の終了コード、変更内容、未確認事項を報告する。実行できない場合は成功扱いしない。
+今回はinstructionsだけを作成してください。検証Scriptは後で作るため、編集後の検証コマンドや再検証の手順はまだ追加しないでください。</pre>
+    </div>
+    <p>作成後は本文を読み、「作業範囲は定義されているが、変更後の検証はまだ指示されていない」ことを確認します。新しいAgentチャットを開いてH1へ進みます。</p>
+
+    <h4 id="ho6-step1">H1 仕様からruffを実行するScriptを作る</h4>
+    <p>最初に必要なのは「ruffを実行する入口」だけです。作成先、対象、呼び出すツール、出力、終了コードを整理してから依頼します。完成テンプレートは使いません。</p>
+    <div class="code-block-wrap block--prompt" data-label="Agentチャットに入力するプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-create-prompt">コピー</button>
+      <pre id="ho6-create-prompt">order_summary.pyをruffで検査するscripts/check_all.pyを作成してください。
+・同じPython環境のruffを「python -m ruff check」で起動する。
+・pyproject.tomlのルールを使い、対象はorder_summary.pyだけとする。
+・自動修正しない。対象コードを実行・変更せず、--no-cacheと--ignore-noqaを指定する。
+・ruffの出力を表示し、成功0、規約違反1、起動失敗やruff未導入などの検証エラー2を返す。
+・結果の見出しを、成功は「=== OK ruff ===」、違反は「=== FAIL ruff ===」、検証エラーは「=== ERROR ruff ===」とする。
+・成功数をPassed 1/1またはPassed 0/1として表示する。
+templatesは参照・コピーせず、仕様から作成してください。instructionsと設定はまだ変更しないでください。
+作成後、generate_harnessを作業ディレクトリとし、次のPowerShellブロック全体を1回で実行して、出力と終了コードを報告してください。
+&amp; {
+  $ErrorActionPreference = 'Stop'
+  ..\..\..\.venv\Scripts\python.exe -B ./scripts/check_all.py
+  $validationExitCode = $LASTEXITCODE
+  Write-Output "ExitCode=$validationExitCode"
+}</pre>
+    </div>
+    <p>実装の中心は、<code>sys.executable</code>で同じPython環境を指定し、<code>subprocess.run</code>でruffを起動して、出力と終了コードを受け取る処理です。対象のパスをScriptの配置から決めると、別のファイルを誤って検査しにくくなります。違反を検出するだけなので、<code>--fix</code>は付けません。</p>
+
+    <h4 id="ho6-check">検証コマンドと判定の読み方</h4>
+    <p><code>scripts/check_all.py</code>を作成した後に使います。<code>generate_harness</code>を作業ディレクトリとし、教材ルートの共通Pythonを直接指定します。外側の<code>&amp; { ... }</code>を含むブロック全体を1回で実行し、別のコマンドの前に終了コードを取得します。</p>
+    <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell）">
+      <button class="copy-btn" data-copy-target="ho6-check-cmd">コピー</button>
+      <pre id="ho6-check-cmd">&amp; {
+        $ErrorActionPreference = 'Stop'
+        ..\..\..\.venv\Scripts\python.exe -B ./scripts/check_all.py
+        $validationExitCode = $LASTEXITCODE
+        Write-Output "ExitCode=$validationExitCode"
+    }</pre>
+    </div>
+    <table>
+      <thead><tr><th>終了コード</th><th>判定</th><th>確認すること</th></tr></thead>
+      <tbody>
+        <tr><td><code>0</code></td><td>登録した検証がすべて成功</td><td>H1・H2はruffだけで<code>Passed 1/1</code>。H3は独自Scriptを追加して<code>Passed 2/2</code></td></tr>
+        <tr><td><code>1</code></td><td>違反を検出</td><td><code>FAIL</code>になった検証名、対象行、メッセージ、修正後の再検証</td></tr>
+        <tr><td><code>2</code></td><td>検証エラー</td><td>未検証として停止し、ruff未導入、読み取り失敗、構文エラーなどの原因を確認</td></tr>
+      </tbody>
+    </table>
+
+    <p>変更前のコードで<code>Passed 1/1</code>・終了コード<code>0</code>を確認します。次に、例えば「未使用の<code>import os</code>を追加し、検証だけを実行して修正はまだしない」と依頼します。F401と終了コード<code>1</code>を確認してから修正を依頼し、成功へ戻します。この段階では、検証の実行を受講者が明示的に依頼しています。</p>
+
+    <h4 id="ho6-step2">H2 instructionsへ編集後の検証手順を書く</h4>
+    <p>Scriptができただけでは、AIが編集のたびに実行するとは限りません。「いつ実行するか」「失敗したら何をするか」をinstructionsへ追加します。</p>
+    <div class="code-block-wrap block--prompt" data-label="instructionsの追記を依頼するプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-instructions-prompt">コピー</button>
+      <pre id="ho6-instructions-prompt">.github/copilot-instructions.mdの作業範囲の条件を保持し、次の開発手順を追記してください。
+    ・order_summary.pyを変更した直後に、下のPowerShellブロック全体を1回のターミナル呼び出しで実行する。作業ディレクトリとブロックをinstructions内にも記載する。
+・終了コード0で登録した全検証が成功した場合だけ、検証成功とする。
+・終了コード1なら、出力に従ってorder_summary.pyを修正し、同じコマンドで再検証する。修正は3回までとする。
+・終了コード2や実行結果が確認できない場合は、未検証として報告して止まる。
+・規約を緩めたり検証を省略したりせず、各回の出力、直後の終了コード、修正内容を報告する。
+    ・検証結果を予測して依頼内容を変えず、依頼された変更を行ってから検証する。違反の修正時も依頼の目的を保つ。
+    ・これはinstructionsに従う直接実行であり、保存時の自動実行やHookによる強制停止ではないと明記する。
+規約そのものはこのファイルへ重複して書かず、設定と検証Scriptに持たせてください。
+    今回はinstructionsだけを変更し、対象コードや検証Scriptは変更しないでください。
+
+    作業ディレクトリ：generate_harness
+    &amp; {
+      $ErrorActionPreference = 'Stop'
+      ..\..\..\.venv\Scripts\python.exe -B ./scripts/check_all.py
+      $validationExitCode = $LASTEXITCODE
+      Write-Output "ExitCode=$validationExitCode"
+    }</pre>
+    </div>
+    <p>保存された本文を読み、コマンドと失敗時の手順を確認してから、新しいAgentチャットで対象コードの変更だけを依頼します。</p>
+    <div class="code-block-wrap block--prompt" data-label="新しいAgentチャットに入力するプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-import-prompt">コピー</button>
+      <pre id="ho6-import-prompt">order_summary.pyの先頭にimport osを追加してください。</pre>
+    </div>
+    <table>
+      <thead><tr><th>順番</th><th>確認する履歴・出力</th></tr></thead>
+      <tbody>
+        <tr><td>変更</td><td><code>import os</code>が追加される</td></tr>
+        <tr><td>検出</td><td><code>=== FAIL ruff ===</code>、未使用importの<code>F401</code>、<code>ExitCode=1</code></td></tr>
+        <tr><td>修正</td><td>使われていない<code>import os</code>が削除される</td></tr>
+        <tr><td>再検証</td><td>同じコマンドが実行され、<code>Passed 1/1</code>、<code>ExitCode=0</code></td></tr>
+      </tbody>
+    </table>
+    <p>H1では検証を都度依頼しましたが、H2では通常の変更依頼の後にinstructionsを基に検証されるかを確認します。最終ファイルだけではなく、編集・検証・修正・再検証の履歴を見ます。追加で「検証して」と頼んだ場合は、その事実を記録します。</p>
+
+    <h4 id="ho6-step3">H3 独自Scriptを作り、同じ入口へ追加する</h4>
+    <p>この例では、デバッグ用の<code>print()</code>を残さないルールを追加します。何を違反にし、何を対象外にするかを決めてから、作成と入口の拡張を依頼します。</p>
+    <div class="code-block-wrap block--prompt" data-label="独自Scriptの作成・追加を依頼するプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-extend-prompt">コピー</button>
+      <pre id="ho6-extend-prompt">scripts/check_no_print.pyを新規作成し、scripts/check_all.pyからruffと一緒に実行するよう拡張してください。
+・検証対象はorder_summary.pyだけ。対象を実行・変更しない。
+・print(...)の直接呼び出しがあれば、対象行と「loggingなどへ置き換える」という対応方法を表示し、1を返す。
+・呼び出しがなければ0、読み取り失敗や構文エラーなら2を返す。
+・Python標準のastで構文解析し、ast.Callの呼び出し先がast.Nameで名前がprintのものを検出する。コメントや文字列内のprintは違反にしない。
+・単体でも、同じPythonで「python -B ./scripts/check_no_print.py」として実行できるようにする。
+・入口は両検証の結果を表示し、成功数をPassed 成功数/2で報告する。
+・結果の見出しはH1と同じ形式とし、検証名をruffとcheck_no_printにする。片方が失敗しても両方を実行して結果を表示する。
+・入口の終了コードは、検証エラーが1つでもあれば2、違反だけなら1、両方成功なら0とする。
+検証コマンドとruffの検査はそのまま保ち、templatesは参照・コピーしないでください。
+作成後、教材ルートの共通.venvのPythonで独自Script単体を実行し、次にinstructionsの検証コマンドで両検証を実行してください。各実行の出力と直後の終了コードを報告してください。</pre>
+    </div>
+    <p>単純な文字列検索ではコメントまで検出します。参考実装ではPythonの構文をASTとして読み、関数呼び出しのうち名前が<code>print</code>のものを調べます。入口ではruffと独自Scriptを両方実行し、どちらかで検証エラーが起きたら終了コード<code>2</code>を優先します。</p>
+    <p>まず両検証が成功して<code>Passed 2/2</code>になることを確認します。その後、新しいAgentチャットで、集計結果を確認するデバッグ出力を依頼します。H2と同じ検証コマンドから、追加した検証も動くことを確認してください。</p>
+    <div class="code-block-wrap block--prompt" data-label="Agentチャットに入力するプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-print-prompt">コピー</button>
+      <pre id="ho6-print-prompt">order_summary.pyのformat_summaryに、集計結果を確認するデバッグ用のprint文を追加してください。</pre>
+    </div>
+    <table>
+      <thead><tr><th>順番</th><th>確認する履歴・出力</th></tr></thead>
+      <tbody>
+        <tr><td>変更</td><td><code>format_summary</code>に<code>print()</code>が追加される</td></tr>
+        <tr><td>検出</td><td><code>=== FAIL check_no_print ===</code>、対象行のメッセージ、<code>ExitCode=1</code></td></tr>
+        <tr><td>修正</td><td><code>print()</code>が<code>logging</code>などに置き換わり、戻り値の形式は保たれる</td></tr>
+        <tr><td>再検証</td><td><code>Passed 2/2</code>、<code>ExitCode=0</code></td></tr>
+      </tbody>
+    </table>
+    <p>H2のinstructionsは、入口のコマンドを呼ぶため、検証項目を増やしても同じ手順を使えます。最初から<code>print</code>を使わなかった場合は検出を確認できていないため、その結果を記録し、実装方法を具体化して再試行します。</p>
+
+    <h4 id="ho6-step4">手順4 入力を変えて確かめ、結果を振り返る</h4>
+    <p>再試行では、デバッグ表示する値や追加するimportなどを1点だけ変え、予想した検証が同じように反応するかを確かめます。判定が誤っている場合はScriptを、実行・報告の手順が不足する場合はinstructionsを改善します。＋αでは、実際の呼び出しではなくコメントだけを追加する例が使えます。</p>
+    <div class="code-block-wrap block--prompt" data-label="誤検知の確認に使うプロンプト例">
+      <button class="copy-btn" data-copy-target="ho6-comment-prompt">コピー</button>
+      <pre id="ho6-comment-prompt">order_summary.pyのformat_summaryに、次のコメントだけを追加してください。
+# Debug output example: print('debug')
+実際のprint呼び出しや処理の変更は追加しないでください。</pre>
+    </div>
+    <p>コメント内の<code>print</code>は直接呼び出しではないため、ほかに違反がなければ<code>Passed 2/2</code>、<code>ExitCode=0</code>になります。独自Scriptが文字列検索ではなく構文を調べているため、H3とは判定が異なります。</p>
+
+    <p><a href="#ho6">課題ページに戻る</a></p>
+    </section>
+
+    <section class="page" id="p8" data-title="全体の振り返り・Q&amp;A・アンケート回答" data-time="110–120 分">
+    <h2 id="review">全体の振り返り・Q&amp;A・アンケート回答（10分）</h2>
+    <ul>
+      <li><strong>Harnessの概要</strong>: AIエージェントの作業を、実行環境・指示・制御・検証・フィードバックで支える仕組み。</li>
+      <li><strong>確率的な指示と決定論的な検証</strong>: instructionsやSkillはAIの判断を導くが、遵守は保証しない。Script・テスト・静的解析は同じ入力・条件で原則同じ判定を行い、違反を機械的に検出する。両者を組み合わせて補い合う。</li>
+      <li><strong>SkillとHarnessの役割の違い</strong>: Skillは「どう作業するか」を知識・手順・判断基準で案内する。Harnessは作業全体を支え、狭い意味では「操作や結果が条件を満たすか」を機械的に制御・検証する。</li>
+    </ul>
+
+    <h3 id="review-qa">Q&amp;A</h3>
+    <p>ここまでの内容で疑問点があれば回答しますので、遠慮なく質問してください。</p>
+
+    <h3 id="review-survey">アンケート回答</h3>
+    <p>次のアンケートフォームに回答してください。満足度・改善要望・感想を共有していただけると、今後の教材改善に役立ちます。</p>
+    <div class="code-block-wrap block--output" data-label="第 5 回 アンケートフォーム URL">
+      <button class="copy-btn" data-copy-target="survey-session5">コピー</button>
+      <pre id="survey-session5">https://forms.cloud.microsoft/r/xSWWDiHy58</pre>
+    </div>
+    <p class="note-line"><a href="https://forms.cloud.microsoft/r/xSWWDiHy58" target="_blank" rel="noopener">このリンクからも開けます</a>。</p>
+    </section>
+  </main>
+</div>
+
+<a href="#top" class="top-link" title="ページ先頭へ" aria-label="ページ先頭へ">↑</a>
+
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/handout.js"></script>
+</body>
+</html>

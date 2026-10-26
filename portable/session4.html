@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 4 回：Skillの設計・作成と改善 | 受講者ハンドアウト</title>
+<link rel="stylesheet" href="assets/handout.css">
+</head>
+<body id="top">
+
+<header class="page-header">
+  <h1>第 4 回：Skillの設計・作成と改善</h1>
+  <div class="header-meta">
+    <span class="header-meta__item"><strong>所要時間</strong>120分（休憩5分を含む）</span>
+    <span class="header-meta__item"><strong>形式</strong>講義・ハンズオン</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="目次">
+    <h2>目次</h2>
+    <!-- 目次は assets/handout.js が section.page から自動生成します -->
+    <ul id="toc-list"></ul>
+  </nav>
+
+  <main>
+    <section class="page" id="p1" data-title="オリエンテーション" data-time="0–10 分">
+    <h2 id="purpose">この教材の目的</h2>
+    <p>生成AIに毎回同じ説明を繰り返さず、目的に応じた指示や資料を再利用するための「Skill」の考え方を学びます。</p>
+    <p>本教材では、Skillの基本と、チームやプロジェクトで扱いやすくする設計・運用の考え方を扱います。具体的な作成操作は、後続のハンズオンで行います。</p>
+
+    <h2 id="goals">到達目標</h2>
+    <p>第4回の終了時点で、次のことを目指します。</p>
+    <ol class="goals">
+      <li>Skillと通常のプロンプトの違いを説明できる</li>
+      <li>Skillがどのような条件で選ばれ、必要な情報が読み込まれるかを理解する</li>
+      <li>後続のハンズオンでSkillを作成・修正できる</li>
+    </ol>
+
+    <h2 id="series">全2回のトレーニング概要</h2>
+    <table>
+      <thead><tr><th>回</th><th>テーマ</th><th>学ぶこと</th></tr></thead>
+      <tbody>
+        <tr class="row-hl"><td>第4回</td><td>Skill</td><td>Skillの概要を理解し、作成・修正を体験する</td></tr>
+        <tr><td>第5回</td><td>Harness</td><td>Harnessの概要と役割を理解し、作成を体験する</td></tr>
+      </tbody>
+    </table>
+    <p>Harnessは、AIエージェントが作業を進める際の実行環境、ルール、検証方法などをまとめて扱うための仕組みです。第5回で詳しく扱います。</p>
+
+    <h2 id="agenda">第4回目のアジェンダ</h2>
+    <p>全体で120分を想定しています。（休憩5分を含む）</p>
+    <table>
+      <thead><tr><th>時間</th><th>内容</th><th>所要</th></tr></thead>
+      <tbody>
+        <tr><td>0～10分</td><td>オリエンテーション・環境チェック</td><td>10分</td></tr>
+        <tr><td>10～20分</td><td>講義① Skillの概要</td><td>10分</td></tr>
+        <tr><td>20～35分</td><td>講義② Skillを設計・運用する仕組み</td><td>15分</td></tr>
+        <tr><td>35～55分</td><td>ハンズオン① Skill修正（3＋3＋5＋4＋5分）</td><td>20分</td></tr>
+        <tr><td>55～60分</td><td><strong>休憩</strong></td><td>5分</td></tr>
+        <tr><td>60～80分</td><td>ハンズオン② Skill作成（手順1～7）</td><td>20分</td></tr>
+        <tr><td>80～110分</td><td>②の補完・追加練習。必須演習を終えた方は任意演習③（動作確認込み30分）</td><td>30分</td></tr>
+        <tr><td>110～120分</td><td>振り返り・Q＆A・アンケート回答</td><td>10分</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="orientation">オリエンテーション</h2>
+    <p>Skillの活用例には、「変更後のコードをレビューする」「障害報告を決まった形式で要約する」などがあります。</p>
+    <p>今日は、特定の製品の画面操作ではなく、どの環境にも応用しやすい考え方を中心に学びます。ファイルの配置方法、Skillの選択方法、使えるメタ情報は、利用する製品や実装により異なります。</p>
+
+    <h2 id="env-check">環境チェックリスト</h2>
+    <div class="checkpoint">
+      <ul>
+        <li>GitHub Copilotまたは利用するAIエージェントにサインインできること</li>
+        <li>この教材が手元にあること</li>
+        <li>後続のハンズオンで使うリポジトリまたはフォルダーにアクセスできること</li>
+      </ul>
+    </div>
+    <p>不足がある場合は、講師またはサポート担当へ状況を共有してください。確認待ちの間も、講義資料を読み進めて構いません。</p>
+
+    <h2 id="prep">開始前の準備</h2>
+    <p>オリエンテーション・環境チェックの0～10分で確認します。</p>
+    <ol class="steps">
+      <li>VS Codeの「ファイル」→「フォルダーを開く」で、次のフォルダーを別ウィンドウで開きます。
+        <div class="code-block-wrap block--output" data-label="開くフォルダー">
+          <button class="copy-btn" data-copy-target="prep-folder">コピー</button>
+          <pre id="prep-folder">github-copilot-training/samples/session4/skill_improvement</pre>
+        </div>
+      </li>
+      <li>エクスプローラーで<code>.github/skills/rd-create/SKILL.md</code>、<code>.github/skills/_shared/CONVENTIONS.md</code>、<code>.github/copilot-instructions.md</code>があることを確認します。この演習のSkill配置先は、開いたフォルダー直下の<code>.github/skills/</code>です。</li>
+      <li>Copilot Chatを開いてサインインし、モードを「Agent」にします。入力欄に<code>/</code>を入力し、候補に<code>rd-create</code>が表示されることを確認します。まだ送信しません。</li>
+    </ol>
+    <p>候補が出ない場合は、開いたフォルダーと配置先を確認し、必要に応じてVS Codeのウィンドウを再読み込みします。解決しない場合は講師へ共有してください。</p>
+    </section>
+
+    <section class="page" id="p2" data-title="講義①：Skillの概要" data-time="10–20 分">
+    <h2 id="lecture1">講義① Skillの概要</h2>
+
+    <h3 id="l1-what">Skillとは何か</h3>
+    <p>Skillとは、AIに特定の作業を依頼するときの再利用可能な指示パッケージです。</p>
+    <p>毎回同じ手順や観点をプロンプトに書く代わりに、作業手順・判断基準・出力形式をあらかじめ定義しておくことで、同じ種類の作業を効率よく進め、一定の品質を保ちやすくなります。</p>
+    <p>多くのAgent Skills実装では、Skillはフォルダー内の <code>SKILL.md</code> を中心に構成されます。<code>SKILL.md</code> には以下のような内容を記載します。</p>
+    <ul>
+      <li>Skillの名前</li>
+      <li>Skillの説明</li>
+      <li>Skillを利用する条件</li>
+      <li>実行時の手順やルール</li>
+    </ul>
+    <p>また、必要に応じてテンプレート、サンプルファイル、スクリプトなどを同じフォルダーに配置することもできます。</p>
+
+    <h3 id="l1-structure">Skillの基本的なファイル／フォルダー構成</h3>
+    <h4>基本構成</h4>
+    <p>基本は、Skillごとのフォルダーに<code>SKILL.md</code>を置く構成です。必要な補助ファイルも同じフォルダー内にまとめます。</p>
+    <div class="code-block-wrap block--code" data-label="フォルダー構成（基本）">
+      <pre>skill-name/
+├── SKILL.md
+├── references/
+├── scripts/
+└── assets/</pre>
+    </div>
+    <table>
+      <thead><tr><th>ファイル／フォルダー</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td><code>SKILL.md</code></td><td>Skillの名前・説明・利用条件・手順を記載する</td></tr>
+        <tr><td><code>references/</code></td><td>必要に応じて読む規約や詳細な資料を置く</td></tr>
+        <tr><td><code>scripts/</code></td><td>実行するスクリプトを置く</td></tr>
+        <tr><td><code>assets/</code></td><td>テンプレートや出力に使う素材を置く</td></tr>
+      </tbody>
+    </table>
+    <p>最小構成は<code>SKILL.md</code>だけで、補助フォルダーは任意です。補助ファイルを使う場合は、<code>SKILL.md</code>に参照先や使用する手順を記載します。</p>
+
+    <h4>具体例：要件定義書作成Skill</h4>
+    <p>要件定義書を作成する<code>rd-create</code>を、GitHub Copilot向けに配置する例です。</p>
+    <div class="code-block-wrap block--code" data-label="フォルダー構成（rd-create の配置例）">
+      <pre>project/
+└── .github/
+   ├── copilot-instructions.md
+   └── skills/
+      ├── _shared/
+      │   └── CONVENTIONS.md
+      └── rd-create/
+         └── SKILL.md</pre>
+    </div>
+    <table>
+      <thead><tr><th>ファイル</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td><code>.github/copilot-instructions.md</code></td><td>Skill実行前に共通規約を確認するなど、プロジェクト共通の指示</td></tr>
+        <tr><td><code>.github/skills/rd-create/SKILL.md</code></td><td>Skillの名前・説明、要件定義書の作成手順・出力形式</td></tr>
+        <tr><td><code>.github/skills/_shared/CONVENTIONS.md</code></td><td>成果物のメタ情報、ID、トレーサビリティ、格納先の正本</td></tr>
+      </tbody>
+    </table>
+    <p><code>rd-create/</code>が1つのSkillのフォルダーです。<code>copilot-instructions.md</code>はプロジェクト共通の指示、<code>_shared/CONVENTIONS.md</code>は複数のSkillから参照する共通規約として配置しています。これらは個々のSkillの必須構成ではありません。</p>
+    <p>次は<code>rd-create/SKILL.md</code>の記述例です。</p>
+    <div class="code-block-wrap block--code" data-label="rd-create/SKILL.md の記述例（Markdown）">
+      <button class="copy-btn" data-copy-target="l1-skill-example">コピー</button>
+      <pre id="l1-skill-example">---
+name: rd-create
+description: 要件定義書を作成する。目的、対象範囲、要件、制約を整理し、合意に利用できる文書を作成する場合に使用する。
+---
+
+# 要件定義書作成Skill
+
+## 作成手順
+
+1. 作成前に[共通規約](../_shared/CONVENTIONS.md)を読む。
+2. 入力の目的、利用者、対象範囲、要件、制約を整理する。不足情報は推測しない。
+3. 共通規約のメタ情報・格納先に従い、要件定義書を保存する。</pre>
+    </div>
+
+    <h3 id="l1-vs-prompt">Skillとプロンプトの違い</h3>
+    <table>
+      <thead><tr><th>観点</th><th>通常のプロンプト</th><th>Skill</th></tr></thead>
+      <tbody>
+        <tr><td>利用目的</td><td>その場の質問・依頼を伝える</td><td>繰り返す作業の進め方を定義する</td></tr>
+        <tr><td>向いている用途</td><td>単発の調査、相談、試行</td><td>レビュー、定型文書作成、決まった手順の調査など</td></tr>
+        <tr><td>再利用性</td><td>会話ごとに書き直すことが多い</td><td>同じ目的の作業で再利用しやすい</td></tr>
+        <tr><td>メリット</td><td>手軽に使える</td><td>確認手順や出力形式をそろえ、品質を保ちやすくする</td></tr>
+        <tr><td>コンテキスト</td><td>入力した内容と会話履歴が中心</td><td>Skill本体に加え、必要時に関連資料やスクリプトを参照する</td></tr>
+      </tbody>
+    </table>
+    <p>Skillだけで品質や結果の再現性が保証されるわけではありません。入力条件と実行結果の確認も必要です。</p>
+
+    <h3 id="l1-instructions">Copilot InstructionsとSkillの関係</h3>
+    <p>GitHub Copilotが利用者の依頼を処理するときは、まず、その作業に適用される共通ルールを参照します。共通ルールは、たとえば <code>.github/copilot-instructions.md</code> や <code>.github/instructions/</code> 内の <code>*.instructions.md</code> に記載します。</p>
+    <p><code>copilot-instructions.md</code> は、プロジェクト内の作業に共通して適用したいルールを書くためのファイルです。<code>*.instructions.md</code> は、設定に応じて特定のファイルや作業を対象にできます。どちらも、対象となる範囲でCopilotに継続して守ってほしいルールを伝えるために使います。</p>
+    <p>たとえば、次のように役割を分けられます。</p>
+    <ul>
+      <li>「Pythonコードの命名規則を守る」: 対象のコードを扱うときに共通して守るため、Instructionsに記載する</li>
+      <li>「変更内容を自己レビューする」: レビューという特定の作業を進めるため、Skillとして定義する</li>
+    </ul>
+    <p>つまり、Instructionsは「普段から守るルール」、Skillは「特定の作業で使う進め方」です。両者はどちらか一方を選ぶものではなく、Skillを使う作業でも、適用されるInstructionsのルールを守ります。</p>
+    <p>ここで示したファイル名と配置はGitHub Copilotにおける例です。他のAgent Skills対応環境では、Instructionsに相当する仕組みやファイルの配置が異なる場合があります。</p>
+
+    <h3 id="l1-flow">Skillが利用される流れ</h3>
+    <h4>基本的な流れ</h4>
+    <p>最初に名前と説明を認識し、選択されたSkillの本文、必要な資料の順に参照します。必要な情報を後から読む仕組みを「段階的開示」と呼びます。</p>
+    <pre class="mermaid">flowchart TD
+    metadata[Skillの名前・説明を認識] --&gt; automatic[依頼内容に応じて自動選択]
+    metadata --&gt; explicit[利用者が /Skill名 で指定]
+    automatic --&gt; body[SKILL.md本文を読む]
+    explicit --&gt; body
+    body --&gt; resources[共通規約・必要な資料を参照]
+    resources --&gt; output[作業して結果を返す]</pre>
+
+    <h3 id="l1-good">良いSkill定義の考え方</h3>
+    <p>Skillは、利用者の依頼内容に応じて選択されるため、目的や利用場面が伝わるように定義することが重要です。説明が曖昧すぎると必要な場面で利用されず、逆に対象を広くしすぎると関係のない場面で利用される可能性があります。</p>
+
+    <h4>説明文や利用条件が適切でない場合の問題</h4>
+    <ul>
+      <li><strong>必要なときに利用されない</strong>: Skillの目的や利用条件が分からない</li>
+      <li><strong>関係のない場面で利用される</strong>: 適用範囲が広すぎる</li>
+      <li><strong>期待する結果が得られない</strong>: 入力や出力の条件が曖昧</li>
+    </ul>
+
+    <h4>良いSkillと改善が必要なSkillの短い例</h4>
+    <p><strong>改善が必要な例</strong></p>
+    <div class="code-block-wrap block--code" data-label="改善が必要な例（YAML）">
+      <pre>name: helper
+description: 開発を支援します。</pre>
+    </div>
+    <p>目的、対象、利用条件が不明です。この説明では、いつ選ぶべきかを判断しにくくなります。</p>
+    <p><strong>良い例</strong></p>
+    <div class="code-block-wrap block--code" data-label="良い例（YAML）">
+      <button class="copy-btn" data-copy-target="l1-good-yaml">コピー</button>
+      <pre id="l1-good-yaml">name: qa-self-review
+description: 変更内容を自己レビューし、仕様との一致、テスト不足、互換性の懸念を確認する。実装や設定を変更した後、レビュー前に使用する。指摘・根拠・確認事項を表で出力する。</pre>
+    </div>
+    <p>この例は、行うことと利用する時点が分かります。</p>
+    <table>
+      <thead><tr><th>ヘッダーの必須項目（YAML）</th><th>今回のGitHub Copilotでの制約</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>親フォルダー名と一致。小文字英数字とハイフンで最大64文字。先頭・末尾のハイフンと連続ハイフンは不可 <sup>[1]</sup></td></tr>
+        <tr><td><code>description</code></td><td>何をするか・いつ使うかを記載。最大1024文字 <sup>[1]</sup></td></tr>
+      </tbody>
+    </table>
+    <p class="note-line">出典：<a href="https://code.visualstudio.com/docs/copilot/customization/agent-skills#_skillmd-file-format" target="_blank" rel="noopener">[1] VS Code公式「SKILL.md file format」</a></p>
+
+    <h4>Skill作成のベストプラクティス</h4>
+    <table>
+      <thead><tr><th>項目</th><th>推奨事項</th></tr></thead>
+      <tbody>
+        <tr><td>本文の分量</td><td><strong>500行未満・5,000トークン未満を推奨</strong>。長い仕様書や参考情報は別ファイルに分ける <sup>[2]</sup></td></tr>
+        <tr><td>補足資料の参照</td><td>本文から<strong>相対パスで直接リンク</strong>する。資料から別資料へ何段階もたどる構成は避ける <sup>[2]</sup></td></tr>
+        <tr><td>本文に含める内容</td><td>作業手順に加え、<strong>入力例・期待する出力例・例外時の対応</strong>を示す <sup>[2]</sup></td></tr>
+      </tbody>
+    </table>
+    <p class="note-line">出典：<a href="https://agentskills.io/specification" target="_blank" rel="noopener">[2] Agent Skills共通仕様「Specification」</a></p>
+    </section>
+
+    <section class="page" id="p3" data-title="講義②：Skillを設計・運用する仕組み" data-time="20–35 分">
+    <h2 id="lecture2">講義② Skillを設計・運用する仕組み</h2>
+    <p>Skillを増やすほど、見つけやすさ、変更のしやすさ、品質確認の方法が重要になります。ここでは、特定企業の社内規約ではなく、プロジェクトで採用できる一般的な設計・運用方法を紹介します。</p>
+
+    <h3 id="l2-naming">分かりやすい命名規則</h3>
+    <p>名前は、作業対象と目的が想像できるものにします。</p>
+    <table>
+      <thead><tr><th>分類</th><th>名前の例</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>良い例</td><td><code>api-change-review</code>、<code>release-note-draft</code>、<code>qa-self-review</code></td><td>対象や作業目的を判断できる</td></tr>
+        <tr><td>避けたい例</td><td><code>helper</code>、<code>tools</code>、<code>skill-1</code></td><td>名前だけでは用途を判断しにくい</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="l2-prefix">Skill命名規則の例</h3>
+    <table>
+      <thead><tr><th>接頭辞</th><th>意味</th><th>用途例</th><th>Skill名例</th></tr></thead>
+      <tbody>
+        <tr><td>rd</td><td>Requirement Definition</td><td>要件定義書の作成・レビュー</td><td>rd-review</td></tr>
+        <tr><td>bd</td><td>Basic Design</td><td>基本設計書の作成・レビュー</td><td>bd-review</td></tr>
+        <tr><td>dd</td><td>Detail Design</td><td>詳細設計書の作成・レビュー</td><td>dd-review</td></tr>
+        <tr><td>cd</td><td>Coding</td><td>ソースコードの作成・レビュー</td><td>cd-review</td></tr>
+        <tr><td>ut</td><td>Unit Test</td><td>単体テストの作成・確認</td><td>ut-create</td></tr>
+        <tr><td>it</td><td>Integration Test</td><td>結合テストの作成・確認</td><td>it-review</td></tr>
+      </tbody>
+    </table>
+    <p>一般的には、小文字とハイフンで単語を区切る形式にすると読みやすくなります。ただし、使用できる文字や名前の長さは、利用するSkillの仕様に従ってください。</p>
+
+    <h3 id="l2-meta">成果物の管理用メタ情報</h3>
+    <p>ここで扱うのは、Skillが作成した要件定義書などの成果物を管理するための情報です。Skill自体の名前・利用条件を記載する<code>name</code>・<code>description</code>とは別のものです。</p>
+    <p>成果物の種類やID、作成日、レビュー状況、関連する成果物を記録しておくと、レビューや保守の際に関係を追跡しやすくなります。</p>
+    <p>次は、この教材の共通規約で採用している項目です。GitHub CopilotやAgent Skillsの必須仕様ではありません。</p>
+    <table>
+      <thead><tr><th>項目</th><th>説明</th></tr></thead>
+      <tbody>
+        <tr><td>artifact</td><td>成果物の種類またはファイル名</td></tr>
+        <tr><td>id</td><td>成果物を一意に識別するID。発番対象外なら<code>-</code></td></tr>
+        <tr><td>target</td><td>対象バッチ・共有ライブラリ・横断作業を識別する安定したID</td></tr>
+        <tr><td>title</td><td>成果物の日本語タイトル</td></tr>
+        <tr><td>created</td><td>作成日（<code>YYYY-MM-DD</code>）</td></tr>
+        <tr><td>status</td><td>レビュー状況や承認状況（draft / reviewed / approved）</td></tr>
+        <tr><td>traces_from</td><td>この成果物につながる上流成果物ID</td></tr>
+        <tr><td>traces_to</td><td>この成果物から作られる下流成果物ID（予約済みIDを含む）</td></tr>
+        <tr><td>generated_by</td><td>作成に使用したSkill名</td></tr>
+      </tbody>
+    </table>
+    <p>例えば、<code>rd-create</code>が作る要件定義書には、次のようなメタ情報を付けます（項目を抜粋）。</p>
+    <table>
+      <thead><tr><th>項目</th><th>値の例</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td><code>RD-001</code></td></tr>
+        <tr><td><code>title</code></td><td>Todoアプリ 要件定義書</td></tr>
+        <tr><td><code>traces_to</code></td><td><code>DD-001</code></td></tr>
+        <tr><td><code>generated_by</code></td><td><code>rd-create</code></td></tr>
+      </tbody>
+    </table>
+    <p>この例の<code>DD-001</code>は、下流の詳細設計書が未作成の段階で予約したIDです。</p>
+
+    <h3 id="l2-self-review">自己レビュー用Skillを設ける考え方</h3>
+    <p><code>qa-self-review</code> のような自己レビュー用Skillは、作業者が提出前に同じ観点で確認するための設計例です。</p>
+    <p>成果物の<strong>管理用メタ情報</strong>も参考に、レビュー状況や関連する成果物を確認します。</p>
+    <p>たとえば、次の確認を標準化できます。</p>
+    <ul>
+      <li>要件や依頼内容と変更内容が一致しているか</li>
+      <li>テストが追加・更新されているか</li>
+      <li>既存機能との互換性や影響範囲を確認したか</li>
+    </ul>
+    <p>プロジェクトで繰り返し発生する確認作業がある場合に、専用Skillとして分ける判断ができます。</p>
+
+    <h3 id="l2-quality">Skillの品質を確認する観点</h3>
+    <p>直前の自己レビューが変更したコードなどの成果物を対象とするのに対し、ここではSkillの定義と参照資料を確認します。公開・更新する前に、次の3点を確認します。</p>
+    <ul>
+      <li><strong>定義・参照の正確性</strong>: 指示、参照先、前提条件が現在の運用と合い、不要な資料や長い説明を読み込ませていないか</li>
+      <li><strong>適用条件と出力</strong>: 使う場面・使わない場面と、結果に含める内容・順序・形式が明確か</li>
+      <li><strong>試行と改善</strong>: 想定する依頼を別の会話でも試し、Skillの選択と出力を確認して、期待との差に応じて修正しているか</li>
+    </ul>
+    <p>変更後も同じ依頼で再実行し、修正の効果を比較します。</p>
+
+    <h3 id="l2-shared">共通領域を置く考え方</h3>
+    <p>複数のSkillで使う規約やテンプレートは、<code>_shared</code>などの共通領域にまとめられます。共通ルールを一か所で管理でき、各Skillへの複写による更新漏れを減らせます。</p>
+    <p>次は、複数のSkillが同じ共通規約を参照する構成の例です。</p>
+    <div class="code-block-wrap block--code" data-label="フォルダー構成（共通領域の例）">
+      <pre>.github/skills/
+├── _shared/
+│   └── CONVENTIONS.md
+├── rd-create/
+│   └── SKILL.md
+└── qa-self-review/
+   └── SKILL.md</pre>
+    </div>
+    <p>共通領域に置くだけでは適用されません。各Skillの本文で参照先と読むタイミングを明示します。たとえば、<code>rd-create/SKILL.md</code>には次のように記載します。</p>
+    <div class="code-block-wrap block--code" data-label="rd-create/SKILL.md への記載例（Markdown）">
+      <button class="copy-btn" data-copy-target="l2-shared-ref">コピー</button>
+      <pre id="l2-shared-ref">成果物を作成する前に[共通規約](../_shared/CONVENTIONS.md)を読む。
+メタ情報、ID、トレーサビリティ、格納先は共通規約に従う。</pre>
+    </div>
+
+    <h3 id="l2-over-shared">共通化しすぎた場合のデメリット</h3>
+    <p>共通資料を増やしすぎると、各Skillが何に依存しているか分かりにくくなります。また、小さな変更が多くのSkillの出力へ影響する可能性があります。</p>
+    <p>共通化するのは、次の条件を満たす内容に絞ると判断しやすくなります。</p>
+    <ul>
+      <li>複数のSkillで同じ意味・同じ表現を使う</li>
+      <li>参照先を明示しても、Skillの目的が分かりにくくならない</li>
+    </ul>
+    <p>一方、特定の作業にだけ必要な判断基準、手順、例外処理は、そのSkill内に置きます。迷ったときは「この内容が変わると、複数のSkillが同時に変わるか」を問いかけます。</p>
+
+    <h2 id="lecture-summary">講義部分のまとめ</h2>
+    <ul>
+      <li><strong>用途を決める</strong>: 目的、使う場面、入力、出力を決める。</li>
+      <li><strong>定義して配置する</strong>: 名前・説明と簡潔な手順を定義し、共通資料への参照を明示して配置する。</li>
+      <li><strong>実行結果を確認する</strong>: Skillを呼び出し、期待する出力との差を特定して必要な箇所だけ修正する。</li>
+    </ul>
+    </section>
+
+    <section class="page" id="p4" data-title="ハンズオン①：Skill修正" data-time="35–55 分">
+    <h2 id="ho1">ハンズオン① Skill修正</h2>
+
+    <h3 id="ho1-purpose">目的</h3>
+    <p>情報が不足している共通規約と、それを参照するSkillの事前実行結果を確認し、期待する結果との差から問題を特定します。</p>
+    <p>その後、GitHub Copilotへ共通規約の修正を依頼し、差分を確認してSkillを再実行します。</p>
+
+    <h3 id="ho1-goals">到達目標</h3>
+    <ul>
+      <li><strong>問題特定</strong>：修正前のSkill・共通規約・実行結果から不足する指示を特定できる</li>
+      <li><strong>修正依頼</strong>：GitHub Copilotへ対象を限定して修正を依頼し、差分を確認できる</li>
+      <li><strong>結果比較</strong>：同じ入力で再実行し、修正前後のメタ情報の違いを説明できる</li>
+    </ul>
+
+    <h3 id="ho1-step1">手順1 修正前のSkillと実行結果を確認する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>3分</span></p>
+    <h4>操作手順</h4>
+    <ol class="steps">
+      <li>次のSkillと共通規約を開きます。
+        <div class="code-block-wrap block--output" data-label="確認するSkillと共通規約">
+          <button class="copy-btn" data-copy-target="ho1-files">コピー</button>
+          <pre id="ho1-files">Skill：
+github-copilot-training\samples\session4\skill_improvement\.github\skills\rd-create\SKILL.md
+
+共通規約（修正対象）：
+github-copilot-training\samples\session4\skill_improvement\.github\skills\_shared\CONVENTIONS.md</pre>
+        </div>
+      </li>
+      <li>次の既存の修正前結果を確認します。
+        <div class="code-block-wrap block--output" data-label="既存の修正前結果">
+          <button class="copy-btn" data-copy-target="ho1-before-result">コピー</button>
+          <pre id="ho1-before-result">既存の修正前結果：
+github-copilot-training\samples\session4\skill_improvement\docs\2026-10-06_01\rd-create.md</pre>
+        </div>
+        <p>以下は修正前のSkill実行結果の一部です。</p>
+        <figure class="shot">
+          <img src="assets/images/rd-create-traces-to-before.png" alt="修正前の rd-create 実行結果。要件定義書のメタ情報表に artifact、id、target、title、created、status、traces_from、generated_by があり、traces_to の行がない">
+          <figcaption>図1：修正前のSkill実行結果の一部。メタ情報に <code>traces_to</code> がない</figcaption>
+        </figure>
+      </li>
+      <li>Skillの共通規約を参照する指示、規約のメタ情報表、結果のメタ情報表を見比べます。
+        <ul>
+          <li>Skillと共通指示が、成果物作成時に共通規約を参照する構成か</li>
+          <li>共通規約に<code>traces_to</code>の意味・形式・値が不明な場合の扱いがあるか</li>
+          <li>修正前結果のメタ情報に<code>traces_to</code>があるか</li>
+        </ul>
+        <div class="callout note">
+          <span class="callout-title">補足</span>
+          <code>traces_to</code>は、この成果物から作られる下流成果物を表すメタ情報です。利用する環境の公式な必須仕様ではなく、この教材で扱うプロジェクトに採用した設計例です。
+        </div>
+      </li>
+    </ol>
+
+    <h4>修正前後で共通の要件入力</h4>
+    <div class="code-block-wrap block--output" data-label="要件入力（修正前後で共通）">
+      <button class="copy-btn" data-copy-target="ho1-input">コピー</button>
+      <pre id="ho1-input">/rd-create
+Todoアプリを作成する。要件定義書を作成して。</pre>
+    </div>
+    <p>要件の依頼文は修正前後で変えません。修正後の実行では、手順5のプロンプトで新規作成・保存先・上書き禁止を追加指定します。これは保存方法の指定であり、アプリの要件を追加するものではありません。</p>
+    <p>今回の修正対象は、共通規約に不足しているメタ情報の<code>traces_to</code>の定義です。そのためSkill本体は修正せず、CONVENTIONS.mdを修正します。</p>
+
+    <h3 id="ho1-step2">手順2 期待する結果との差を整理する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>3分</span></p>
+    <h4>操作手順</h4>
+    <p>次の表を使い、共通規約の不足と実行結果の問題を対応付けます。修正前の状態は、手順1の修正前結果で確認してください。</p>
+    <table>
+      <thead><tr><th>観点</th><th>修正前の状態</th><th>期待する状態</th><th>不足する指示</th></tr></thead>
+      <tbody>
+        <tr><td>意味</td><td>共通メタ情報に<code>traces_to</code>の定義がない</td><td>この成果物から作られる下流成果物IDを示す</td><td>プロジェクト独自のトレーサビリティ項目として意味を定義する</td></tr>
+        <tr><td>形式</td><td>規約に項目がなく、既存結果の表にもない</td><td>次の未使用の<code>DD-###</code>を予約してメタ情報表へ出力する。配布直後の初回は<code>DD-002</code>。複数IDは<code>, </code>区切り</td><td>詳細設計書が未作成でも予約IDを記載し、詳細設計を作らないと明示された場合だけ<code>-</code>とする</td></tr>
+        <tr><td>推測しない扱い</td><td>未確認値一般の扱いはあるが、<code>traces_to</code>への適用が明示されていない</td><td>既存成果物・予約記録を確認して採番する。確認できなければIDを推測せず、未確定の状態と確認事項を示す</td><td>「未作成」「作成しない」「予約判断に必要な情報が不明」を区別し、不明な場合は共通規約§1を適用する</td></tr>
+      </tbody>
+    </table>
+    <p>以下は修正後のメタ情報の例です。<code>traces_to</code>に、配布直後の初回期待値である<code>DD-002</code>が記載されています。画像に写っていない本文の予約ID、採番の根拠、新規保存先、既存成果物が上書きされていないことは、手順5で実際の成果物・予約記録・差分を確認してください。</p>
+    <figure class="shot">
+      <img src="assets/images/rd-create-traces-to-after.png" alt="修正後の rd-create 実行結果。メタ情報表の traces_from と generated_by の間に traces_to の行があり、値は DD-002">
+      <figcaption>図2：修正後のメタ情報の例。<code>traces_to</code> に <code>DD-002</code> が記載されている</figcaption>
+    </figure>
+
+    <h3 id="ho1-step3">手順3 GitHub Copilotへ修正を依頼する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>5分</span></p>
+    <h4>操作手順</h4>
+    <p>次のプロンプトをコピーしてGitHub Copilotへ送信します。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agentモード）に貼るプロンプト">
+      <button class="copy-btn" data-copy-target="ho1-fix-prompt">コピー</button>
+      <pre id="ho1-fix-prompt">.github/skills/_shared/CONVENTIONS.mdを確認し、要件定義書から詳細設計書へのトレーサビリティを規定してください。
+
+共通メタ情報に`traces_to`の意味を追加し、`rd-create`が通常は既存成果物と予約記録を確認して未使用の詳細設計書ID（`DD-###`）を予約し、記載する規則を追加してください。詳細設計を作成しないことが明示されている場合は、既存の「該当なし」の規則と整合させてください。IDを推測で採番しないでください。
+
+変更はこのファイルの必要箇所に限り、変更内容を簡潔に説明してください。</pre>
+    </div>
+
+    <h3 id="ho1-step4">手順4 修正差分を確認する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>4分</span></p>
+    <h4>操作手順</h4>
+    <ol class="steps">
+      <li>ファイルを保存し、VS Code左側の「ソース管理」を開きます。</li>
+      <li>「変更」から、この演習フォルダーの<code>.github/skills/_shared/CONVENTIONS.md</code>を選び、左右の差分を確認します。演習開始前からある他の変更は対象に含めません。</li>
+      <li>次の内容を確認してから再実行へ進みます。
+        <ul>
+          <li>この依頼で変更されたのが対象の共通規約だけか</li>
+          <li><code>traces_to</code>に関する必要な記述が追加されているか</li>
+          <li>問題と関係のない記述が変更されていないか</li>
+        </ul>
+      </li>
+    </ol>
+    <p>意図しない変更があれば、差分エディター右側でその変更行だけを選択し、右クリックの「選択した範囲を元に戻す（Revert Selected Ranges）」を使います。表示されない場合は、その部分だけを左側の元の内容に戻して保存します。既存の変更や正しい修正まで消す「すべての変更を破棄」は使用しません。</p>
+    <p>取り消した部分の差分を再確認し、問題点を具体的に伝えてGitHub Copilotへ対象箇所だけの再修正を依頼してください。</p>
+
+    <h3 id="ho1-step5">手順5 Skillを実行する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>5分</span></p>
+    <h4>操作手順</h4>
+    <ol class="steps">
+      <li>共通規約の修正を保存し、<code>docs/</code>の既存ディレクトリを確認します。保存先は共通規約§4.1に従い、実行日の<code>YYYY-MM-DD</code>と同日の最大<code>NN</code> + 1（同日のディレクトリがなければ<code>01</code>）で決めます。既存ディレクトリは再利用しません。</li>
+      <li>Copilot Chatで「新しいチャット」を開いてAgentモードにします。<code>/</code>の候補から<code>rd-create</code>を選び、次のプロンプトに、上記1で決めた具体的な保存先（<code>docs/YYYY-MM-DD_NN/rd-create.md</code>）、既存成果物・予約記録の変更・上書き禁止、指定先が既に存在する場合は上書きせず保存先の再指定を求めることを追記して送信します。
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agentモード・新しいチャット）に貼るプロンプト（保存先などを追記して送信）">
+          <button class="copy-btn" data-copy-target="ho1-run-prompt">コピー</button>
+          <pre id="ho1-run-prompt">/rd-create
+Todoアプリを作成する。要件定義書を作成して。
+
+今回は既存成果物の改訂ではなく、比較用の新しい要件定義書を作成してください。</pre>
+        </div>
+      </li>
+      <li>指定先の<code>rd-create.md</code>を開き、新しい成果物として保存されていることを確認します。「ソース管理」で既存成果物に今回の差分がなく、修正前結果が上書きされていないことも確認します。</li>
+      <li>修正前結果を開き、メタ情報表を左右に並べて比較します。</li>
+    </ol>
+    <table>
+      <thead><tr><th>比較項目</th><th>確認する内容</th></tr></thead>
+      <tbody>
+        <tr><td><code>traces_to</code></td><td>修正前の結果には項目がない。修正後は既存・予約済みIDと重複しない次の<code>DD-###</code>が記載されている。配布直後は本文に予約された<code>DD-001</code>だけが存在するため、初回の例は<code>DD-002</code></td></tr>
+        <tr><td>入力の維持</td><td>要件の依頼文「Todoアプリを作成する。要件定義書を作成して。」を維持している。追加した指定は新規作成・保存方法であり、未指定の利用者、機能、対象範囲、アプリの保存方式などは未確定として扱われている</td></tr>
+        <tr><td>修正の効果</td><td><code>traces_to</code>と本文の予約IDが一致し、既存・予約済みIDを再利用していない。採番の根拠が示され、未指定事項を推測していない</td></tr>
+      </tbody>
+    </table>
+    <p>今回確認するのは、新しい要件定義書で次の未使用IDを予約するケースです。追加練習や再実行では、その時点の既存成果物・予約記録に従って番号が進むため、<code>DD-002</code>に固定しません。</p>
+    </section>
+
+    <section class="page" id="p5" data-title="休憩 ／ ハンズオン②：Skill作成" data-time="55–80 分">
+    <h2 id="break">休憩</h2>
+    <p><strong>55～60分の5分間は休憩です。</strong></p>
+    <p>休憩前に、変更したファイルが保存されていることを確認してください。</p>
+
+    <h2 id="ho2">ハンズオン② Skill作成</h2>
+
+    <h3 id="ho2-purpose">目的</h3>
+    <p>Todoアプリを読む順番と理由を案内するSkillを作り、保存、呼び出し、結果確認まで体験します。</p>
+
+    <h3 id="ho2-theme">題材</h3>
+    <p>対象は、次のフォルダー直下にあるFlaskのTodoアプリです。ハンズオン①とは別のフォルダーを開きます。</p>
+    <div class="code-block-wrap block--output" data-label="開くフォルダー">
+      <button class="copy-btn" data-copy-target="ho2-folder">コピー</button>
+      <pre id="ho2-folder">github-copilot-training/samples/session4/skill_create</pre>
+    </div>
+    <table>
+      <thead><tr><th>ファイル</th><th>役割</th></tr></thead>
+      <tbody>
+        <tr><td><code>server.py</code></td><td>Flaskの起動、TodoのAPI、SQLiteへの保存</td></tr>
+        <tr><td><code>templates/index.html</code></td><td>入力フォームと一覧のHTML、静的ファイルの読み込み</td></tr>
+        <tr><td><code>static/script.js</code></td><td>Todoの追加・編集・完了切り替え・削除、APIとの通信</td></tr>
+        <tr><td><code>static/style.css</code></td><td>画面のレイアウト、状態別の表示、狭い画面への対応</td></tr>
+      </tbody>
+    </table>
+    <p>開いたフォルダーには、手順2で使う参照用Skill（<code>.github/skills/todo-entry-point/</code>）も配置済みです。これはTodoアプリの一部ではないため、上の表には含めていません。</p>
+    <p><code>samples/skill_handson2/todo-app-db/</code>は、<code>skill_create</code>直下を基準とした、このアプリのデータベース保存先です。別のサンプルアプリを探す場所ではありません。バイナリの<code>todos.db</code>を直接読む必要はなく、保存先は<code>server.py</code>の<code>DB_PATH</code>で確認します。</p>
+
+    <h3 id="ho2-image">完成イメージ</h3>
+    <p>作成するSkill名は<code>project-file-guide</code>、保存先は開いた<code>skill_create</code>からの相対パスで<code>.github/skills/project-file-guide/SKILL.md</code>です。</p>
+    <p><code>/project-file-guide</code>で呼び出すと、Todoアプリの実在するファイルについて「順番 / 確認するファイル・箇所 / 理由」の表がチャットに出力されます。生成後のSkillは読み取り専用で、アプリも調査結果ファイルも変更・作成しません。</p>
+
+    <h3 id="ho2-flow">手順と成功条件</h3>
+    <p>手順1～7で、対象と参照用Skillの確認、要件整理、Skill作成、レビュー、呼び出し、結果確認を行います。成功条件のチェックは末尾の「順番と理由 / ファイルの実在 / 変更なし」の3点にまとめています。</p>
+
+    <h3 id="ho2-step1">手順1 対象プロジェクトを確認する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>2分</span></p>
+    <h4>受講者の操作</h4>
+    <ol class="steps">
+      <li>VS Codeの「ファイル」→「フォルダーを開く」で、<code>github-copilot-training/samples/session4/skill_create</code>を別ウィンドウで開きます。複数の演習フォルダーをまとめて開いた状態では作業しません。</li>
+      <li>VS Code左側の「ソース管理」を開き、<code>skill_create</code>内の変更一覧（「ステージされている変更」も含む）と、各ファイルを選んで表示される差分を確認します。既存の変更があれば、一覧と差分を画面のキャプチャなどで記録し、後の比較に使います。</li>
+    </ol>
+    <p>この演習ではアプリを起動せず、依存パッケージのインストールも不要です。<code>server.py</code>はimport時にもデータベースを初期化するため、調査目的で起動・importしません。</p>
+    <table>
+      <thead><tr><th>区分</th><th>対象</th></tr></thead>
+      <tbody>
+        <tr><td>新規作成を許可</td><td><code>.github/skills/project-file-guide/SKILL.md</code>だけ</td></tr>
+        <tr><td>読み取り専用</td><td><code>server.py</code>、<code>templates/</code>、<code>static/</code>、<code>samples/</code>、配布済みの参照用Skillと補助資料</td></tr>
+        <tr><td>対象外</td><td>親フォルダー、他の演習フォルダー、別のサンプル</td></tr>
+      </tbody>
+    </table>
+    <h4>エラーが発生した場合</h4>
+    <p>対象ファイルや参照用Skillがない場合、またはソース管理で変更状況を確認できない場合は、アプリを変更せず、開いたフォルダーと画面の状態やエラーメッセージを講師へ共有してください。</p>
+
+    <h3 id="ho2-step2">手順2 参照用Skillの目的と出力を確認する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>2分</span></p>
+    <p>参照用Skillの内容を読み、今回作成するSkillとの違いを確認します。この手順ではSkillを実行・変更しません。</p>
+    <h4>受講者の操作</h4>
+    <ol class="steps">
+      <li><code>.github/skills/todo-entry-point/SKILL.md</code>を開きます。これはサーバーの起点だけを確認する配布済みの参照用Skillで、今回作成するSkillの完成版ではありません。</li>
+      <li>本文の「目的と利用条件」「制約と出力形式」を読み、サーバーの起点を調べて「ファイル / 起点 / 根拠」の表を出力することと、読み取り専用であることを確認します。</li>
+      <li>今回作成する<code>project-file-guide</code>では、調べる範囲をTodoアプリ全体へ広げ、「順番 / 確認するファイル・箇所 / 理由」の表を出力する点が異なることを確認します。</li>
+    </ol>
+
+    <h3 id="ho2-step3">手順3 作成するSkillの要件を整理する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>3分</span></p>
+    <h4>受講者の操作</h4>
+    <p>次の3点を整理します。参照用Skillと同じ読み取り専用の制約を守り、案内する範囲をサーバーの起点からTodoアプリ全体へ広げます。</p>
+    <ul>
+      <li><strong>目的と利用条件</strong>：名称は<code>project-file-guide</code>。プロジェクトを理解するためのファイル確認順を知りたい場合に利用し、実装・不具合修正・不要コード削除には利用しない。</li>
+      <li><strong>入力と出力</strong>：入力は開いた<code>skill_create</code>のTodoアプリ。出力は5手程度の「順番 / 確認するファイル・箇所 / 理由」の表と、不明点・配置されていない資料の明示。</li>
+      <li><strong>調査手順と制約</strong>：まずルート構成を確認し、起点、画面、操作、APIと保存、表示をたどる。実在するファイルだけを使い、生成後の実行ではファイルの作成・変更・削除やアプリの起動を行わない。</li>
+    </ul>
+
+    <h3 id="ho2-step4">手順4 GitHub CopilotへSkill作成を依頼する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>5分</span></p>
+    <h4>受講者の操作</h4>
+    <p><code>skill_create</code>を開いたウィンドウでCopilot Chatを開き、Agentモードで次のプロンプトを送信します。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agentモード）に貼るプロンプト">
+      <button class="copy-btn" data-copy-target="ho2-create-prompt">コピー</button>
+      <pre id="ho2-create-prompt">開いているskill_createのTodoアプリを理解するために、ファイル確認順と理由を案内するSkillを作成してください。
+
+Skill名：project-file-guide
+保存先：.github/skills/project-file-guide/SKILL.md
+対象：skill_create直下のserver.py、templates/index.html、static/script.js、static/style.css
+
+作成前に、次の確認を行ってください。
+
+1. .github/skills/todo-entry-point/SKILL.mdと、本文から参照されている補助資料を読み、目的・出力・読み取り専用の制約を確認する
+2. skill_createのルート構成と対象4ファイルを読み、実在するファイルと役割を確認する
+3. Gitの既存変更を確認し、作成を許可するのは上記保存先の1ファイルだけとする
+
+作成するSkillの要件は次のとおりです。
+
+- 先頭に---で囲んだYAMLを置き、nameをproject-file-guideとし、descriptionに目的と利用条件を記載する。本文にも利用する場面・利用しない場面と必要な入力を明記する
+- ルート構成を確認してから、Todoアプリの重要なファイルを5手程度で案内する。出力は「順番 / 確認するファイル・箇所 / 理由」の表とし、存在しないREADME・依存関係の定義・テストや不明な情報は推測せず、その状態を明示する
+- 生成後のSkill実行は読み取り専用とし、ファイルの作成・変更・削除、サーバーの起動、server.pyのimportを行わない。調査結果はチャットだけに出力する
+
+「読み取り専用」は生成後のSkill実行に適用します。今回は指定したSKILL.mdの新規作成・保存を許可します。
+アプリ、データベース、参照用Skill、補助資料、他の演習フォルダーは変更しないでください。
+調査結果と作成方針を簡潔に説明した後、指定先へ実際にファイルを保存してください。内容の提示だけで終わらないでください。
+作成後は保存先と利用条件を要約してください。</pre>
+    </div>
+    <p>応答にコードが表示されただけで完了とせず、エクスプローラーで<code>.github/skills/project-file-guide/SKILL.md</code>が保存されていることを確認します。</p>
+
+    <h3 id="ho2-step5">手順5 生成されたSkillを確認する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>3分</span></p>
+    <h4>受講者の操作</h4>
+    <ol class="steps">
+      <li>保存された<code>SKILL.md</code>を開き、YAMLの<code>name: project-file-guide</code>と<code>description</code>、本文の利用条件・入力・表の出力形式を確認します。</li>
+      <li>5手程度の調査手順と、生成後は読み取りだけで起動・import・ファイル保存をしない制約を確認します。存在しないファイルを読む指示があれば、指定のSkillだけを修正するよう依頼します。</li>
+      <li>「ソース管理」の変更一覧と各ファイルの差分を、手順1で確認した状態と比較します。今回追加された変更が<code>.github/skills/project-file-guide/SKILL.md</code>だけであり、既存の変更に新たな差分が加わっていないことを確認します。手順7との比較用に、Skill実行前の一覧と差分を画面のキャプチャなどで記録します。</li>
+    </ol>
+
+    <h3 id="ho2-step6">手順6 Skillを呼び出す</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>3分</span></p>
+    <h4>受講者の操作</h4>
+    <ol class="steps">
+      <li>ファイルを保存し、Copilot Chatで「新しいチャット」を開いてAgentモードにします。</li>
+      <li>入力欄に<code>/</code>を入力し、候補から<code>project-file-guide</code>を選びます。候補がない場合は、開いたフォルダー、保存先、YAMLを確認し、必要に応じてウィンドウを再読み込みします。解決しない場合は講師へ共有します。</li>
+      <li>選んだSkillに続けて次の依頼文を入力し、送信します。
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agentモード・新しいチャット）に貼るプロンプト">
+          <button class="copy-btn" data-copy-target="ho2-run-prompt">コピー</button>
+          <pre id="ho2-run-prompt">/project-file-guide
+skill_createのTodoアプリを理解するために、どのファイルから確認すればよいですか。</pre>
+        </div>
+      </li>
+    </ol>
+
+    <h4>出力例（確認順と理由）</h4>
+    <p>順番は一例です。理由が説明されていれば多少の違いは許容します。同じファイルを、起動とAPIなど別の観点で再確認しても構いません。</p>
+    <table>
+      <thead><tr><th>順番</th><th>確認するファイル・箇所</th><th>理由</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><code>server.py</code>のimport、<code>app = Flask(__name__)</code>、末尾の起動条件</td><td>使用技術とエントリーポイントを把握する</td></tr>
+        <tr><td>2</td><td><code>templates/index.html</code>のフォーム、一覧、<code>url_for(...)</code></td><td>画面構造とJavaScript・CSSへのつながりを把握する</td></tr>
+        <tr><td>3</td><td><code>static/script.js</code>の<code>loadTodos</code>、<code>updateTodo</code>、<code>deleteTodo</code>、submit処理</td><td>画面操作からAPI呼び出しまでの流れを追う</td></tr>
+        <tr><td>4</td><td><code>server.py</code>の<code>/api/todos</code>関連ルート、<code>DB_PATH</code>、DB操作</td><td>通信先の入力チェックとSQLiteへの保存を確かめる</td></tr>
+        <tr><td>5</td><td><code>static/style.css</code>のレイアウト、完了状態、メディアクエリ</td><td>画面の表示と狭い画面での変化を把握する</td></tr>
+      </tbody>
+    </table>
+    <p>README・依存関係の定義ファイル・テストは「対象フォルダー内に配置なし」と補足され、架空のファイルやテストコマンドが案内されていないことを確認します。</p>
+
+    <h3 id="ho2-step7">手順7 結果を確認する</h3>
+    <p class="session-meta"><span class="session-meta__item"><strong>所要時間の目安</strong>2分</span></p>
+    <h4>受講者の操作</h4>
+    <p>案内されたファイルを開いて出力例と照合します。その後、「ソース管理」の変更一覧と各ファイルの差分を、手順5で記録したSkill実行前の状態と比較し、新たな変更がないことを確認します。新規作成したSkillも開き、実行前に確認した内容から変更されていないことを確認します。次の3点を確認して完了とします。</p>
+
+    <h3 id="ho2-success">成功条件</h3>
+    <div class="checkpoint">
+      <ul>
+        <li><strong>順番と理由</strong>：Skillが指定先に保存され、<code>/</code>の候補から選んで実行できた。出力には5手程度の確認順と各箇所を読む理由がある。</li>
+        <li><strong>ファイルの実在</strong>：案内先は<code>skill_create</code>のTodoアプリに実在し、未配置の資料や不明点を推測で補っていない。</li>
+        <li><strong>変更なし</strong>：作成時の変更は指定したSkillだけで、Skill実行前後の変更状況に差がない。アプリ、データベース、参照用Skill、補助資料は変更されていない。</li>
+      </ul>
+    </div>
+    </section>
+
+    <section class="page" id="p6" data-title="応用ハンズオン③：Skill作成（実務寄り）" data-time="80–110 分">
+    <h2 id="ho3">応用ハンズオン③ Skill作成（実務寄り）</h2>
+    <p>②で開いた<code>samples/session4/skill_create</code>をそのまま使い、作成した<code>project-file-guide</code>や既存の変更は残します。</p>
+    <p>PowerShellで<code>..\..\..\.venv\Scripts\Activate.ps1</code>を実行し、教材フォルダー直下の共通<code>.venv</code>を有効化してください。</p>
+
+    <h3 id="ho3-challenge">課題：安全に不要コードを整理するSkillを作る</h3>
+    <p>Todoアプリの<code>server.py</code>を対象に、まずS1で候補の提示・許可待ちまでを行う<code>safe-code-cleanup</code>を作り、S2で許可後の削除処理、S3で削除前後の動作比較を追加してください。<strong>課題は3つに分け、同じSkillを段階的に作ります。</strong>候補名や件数は決め打ちせず、実際のソースから調べます。</p>
+    <p>このページには完成したプロンプトを載せていません。各課題の判断条件や報告内容を自分で決め、Copilotへの依頼文とSkillの内容を考えてください。作成にCopilotを使っても、直接編集しても構いません。</p>
+    <table>
+      <thead><tr><th>課題</th><th>自分で考えること</th></tr></thead>
+      <tbody>
+        <tr><td>S1 候補提示・許可待ちのスキル作成</td><td>何を調べれば不要と言えるか。直接の参照がなくても残すコードや、確認できない候補をどう扱うか。利用者が削除を判断できる報告に何を含め、報告後にどう許可待ちで止めるか</td></tr>
+        <tr><td>S2 許可後の削除</td><td>S1のSkillに、利用者が許可した候補だけを削除する処理をどう追加するか。候補表と許可範囲をどう照合し、最新ソースの確認、最小限の修正、差分の確認をどう行うか</td></tr>
+        <tr><td>S3 削除前後の動作比較</td><td>コードを削除する前後で、アプリの動作が変わっていないかをどう確かめるか。</td></tr>
+        <tr><td>＋α 参照資料の活用</td><td>時間がある方向け。コード解析だけでは分からない業務・運用上の情報を、参照資料から補うようにSkillを改善する。資料の根拠とコードの確認結果をどう組み合わせるか</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="ho3-boundaries">守る範囲と安全条件</h3>
+    <p>以下は試行錯誤の対象ではなく、全員が守る条件です。<strong>削除の判断や許可待ちの確認は、まずコードを変更しない第1段階で行います。</strong></p>
+    <ul>
+      <li><strong>作成先</strong>：開いた<code>skill_create</code>からの相対パスで<code>.github/skills/safe-code-cleanup/SKILL.md</code>だけを作成・修正する。</li>
+      <li><strong>調査範囲</strong>：<code>server.py</code>全体と、参照確認に必要な<code>skill_create</code>内の関連ファイル。親フォルダーや他の演習は対象外とする。</li>
+      <li><strong>役割分担</strong>：Skillは読み取りと許可範囲の編集だけを行う。環境構築、構文確認、サーバー起動、<code>server.py</code>のimport、API・画面・DB操作はさせない。受講者が起動と画面操作を行い、確認用Todoだけを操作する。</li>
+    </ul>
+
+    <h3 id="ho3-work">進め方：S1からS3へ段階的に作る</h3>
+    <ol class="steps">
+      <li><strong>現状を確認する。</strong>変更一覧・差分と削除前のアプリの動作を確認し、サーバーを停止する。</li>
+      <li><strong>S1のSkillを作る。</strong>候補と根拠を報告し、削除せず許可待ちで止まるSkillを作る。</li>
+      <li><strong>S1を確認する。</strong>新しいチャットで呼び出し、報告内容とアプリに変更がないことを確認する。</li>
+      <li><strong>S2を追加する。</strong>同じSkillに、許可された候補だけを削除し、差分を確認する処理を追加する。</li>
+      <li><strong>S2を実行する。</strong>新しいチャットで候補と削除範囲を再確認し、削除前の結果を共有して許可する。</li>
+      <li><strong>S3で比較する。</strong>再起動して同じ操作・入力で確認し、同じチャットで結果を共有して削除前と比較する。</li>
+      <li>結果と気づきを記録する。余裕があれば＋αへ進む。</li>
+    </ol>
+
+    <details>
+      <summary>詰まったときのヒント（起動方法・判断の観点）</summary>
+      <p>②と同じ<code>skill_create</code>でPowerShellを開き、教材ルートの仮想環境を指定して起動します。<code>http://127.0.0.1:5000/</code>を開き、確認後は<code>Ctrl+C</code>で停止します。起動できない場合はアプリや環境を変更せず、講師へ共有してください。</p>
+      <pre>..\..\..\.venv\Scripts\python.exe server.py</pre>
+      <ul>
+        <li>Flaskが登録を通じて呼び出す関数は、コード内の直接の呼び出しだけでは不要と判断できません。</li>
+        <li>候補の名前だけでなく、根拠・確認した参照・未確認事項・削除範囲が報告されているかを見ます。</li>
+        <li>許可待ちで止まらない場合は、第1段階の終了条件と、削除を許可する条件が区別されているかを確認します。</li>
+        <li>Skillが候補に出ない場合は、保存先・ファイル名・YAMLの名前と説明文を確認します。</li>
+      </ul>
+    </details>
+
+    <h3 id="ho3-minimum">どこまでやればOKか</h3>
+    <p><strong>必須ライン</strong></p>
+    <ul>
+      <li><strong>S1</strong>：候補の根拠・確認済みと未確認の点・削除範囲を報告し、コードを変えずに許可待ちで止まることを確認した。</li>
+      <li><strong>S2</strong>：同じSkillに許可後の削除を追加し、候補表と許可範囲を照合して、許可されたコードだけを最小限変更した。候補なし・判断保留の場合は削除せず、その理由を確認した。</li>
+      <li><strong>S3</strong>：コード削除前後で、アプリの動作が変わっていないことを確認した。</li>
+    </ul>
+    <div class="callout note">
+      <span class="callout-title">判断できない候補を無理に削除しない</span>
+      削除件数ではなく、<strong>人が判断できる報告、許可された範囲だけを変更する仕組み、削除前後の動作比較</strong>を重視します。不明な点があれば確認してください。
+    </div>
+
+    <h3 id="ho3-stretch">＋α課題：参照資料を使って判断を補う（時間がある方向け）</h3>
+    <p>外部ツールからの利用や廃止予定など、プログラム解析だけでは分からない情報が資料に残っている前提で、S1の調査・報告を改善してください。演習用の<a href="../samples/session4/skill_create/docs/cleanup-context.md"><code>docs/cleanup-context.md</code></a>を用意しています。記載は架空の業務・運用情報です。</p>
+    <ol class="steps">
+      <li>資料を読み、コードだけでは分からなかった情報と、その情報が判断にどう影響するかを考える。</li>
+      <li>Skillに、資料を参照するタイミングと、コードの確認結果・資料の根拠を候補報告へ併記する処理を追加する。資料がない、記載が古い、コードと矛盾する場合の扱いも考える。資料自体は編集しない。</li>
+      <li>新しいチャットで読み取り専用の調査を行い、資料を参照する前の候補表と判定・根拠を比較する。S2で削除済みの候補は削除前の報告を再評価し、コードを追加し直したり復元したりしない。</li>
+    </ol>
+    <p><strong>資料は削除の許可ではありません。</strong>資料に書かれた事情と、実際のソースで確認した事実を分け、確認不足や矛盾があれば判断保留にします。＋αでは追加のコード削除は行いません。</p>
+
+    <h3 id="ho3-timing">進捗の目安</h3>
+    <table>
+      <thead><tr><th>経過時間</th><th>目安</th></tr></thead>
+      <tbody>
+        <tr><td>0～5分</td><td>対象と変更前の動作を確認する</td></tr>
+        <tr><td>5～13分</td><td>S1の候補提示・許可待ちを作成して確認する</td></tr>
+        <tr><td>13～20分</td><td>S2の許可後の削除・差分確認を追加する</td></tr>
+        <tr><td>20～30分</td><td>S3の比較処理を追加し、削除と動作比較まで確認する</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="ho3-reflection">振り返りと解答例</h3>
+    <p>「人が削除を判断するために必要だった情報」「許可範囲を守るためにSkillへ書いた条件」「削除前後の動作を比較するために確認した結果」を振り返ってください。＋αに取り組んだ場合は、資料の参照によって判定や根拠がどう変わったかも説明してください。</p>
+    <p><a href="#ho3-answer">次ページの解答例・解説</a>は、作業後の比較と講師の説明に使います。正解は1つではありません。プロンプトの文面ではなく、調査・許可・検証の条件を満たしているかを比べてください。</p>
+    </section>
+
+    <section class="page" id="p6-answer" data-title="応用ハンズオン③：解答例・解説" data-time="演習後の解説">
+    <h2 id="ho3-answer">応用ハンズオン③ 解答例・解説</h2>
+
+    <h4 id="ho3-judge">判定の確認例</h4>
+    <p>次の表は、調査結果を受講者が確認するための例であり、Skillへ渡す候補リストではありません。Skillは<code>server.py</code>全体を調べ、実際のソースと参照関係から候補を見つけます。既存の変更で例のコードがなくなっていても追加し直さず、実際の調査結果を使います。参照調査に加え、受講者が削除前後に同じ画面操作を行い、動作が変わっていないか確認します。</p>
+    <table>
+      <thead><tr><th>例</th><th>教材での扱い</th><th>確認すること</th></tr></thead>
+      <tbody>
+        <tr><td><code>import math</code></td><td>削除可能な演習用import</td><td><code>math</code>の参照がなく、標準ライブラリの読み込みをアプリの初期化に利用していないこと</td></tr>
+        <tr><td><code>_legacy_normalize_title(title)</code></td><td>削除可能な演習用内部関数</td><td>定義以外の参照、デコレーター、動的な関数名指定がなく、関数本体が<code>title.strip()</code>だけであること</td></tr>
+        <tr><td><code>list_todos()</code></td><td>直接の呼び出しだけでは判断保留。削除許可の対象外</td><td><code>@app.route("/api/todos", methods=["GET"])</code>による登録を確認する。Flaskがリクエスト時に呼び出すので保持する</td></tr>
+      </tbody>
+    </table>
+    <p>参照・副作用・外部利用・動的登録のいずれかを確認できない候補は「判断保留」とし、削除候補が見つからない場合は「該当なし」とします。</p>
+
+    <h4 id="ho3-step1">手順1 削除前の動作を確認する</h4>
+    <p>②の<code>skill_create</code>を使います。仮想環境は演習フォルダー内ではなく、教材ルートの<code>github-copilot-training/.venv</code>にあります。以下のコマンドは<code>skill_create</code>から3階層上の仮想環境のPythonを直接指定するため、新しいウィンドウでも仮想環境の有効化は不要です。</p>
+    <ol class="steps">
+      <li>②で作成した<code>project-file-guide</code>が残っていることを確認し、<code>server.py</code>、<code>templates/index.html</code>、<code>static/script.js</code>を開いてAPI・DB・画面のつながりを確認する。</li>
+      <li>「ソース管理」で変更一覧（ステージ済みも含む）と差分をキャプチャする。</li>
+      <li><code>skill_create</code>を開いたVS Codeの「ターミナル」→「新しいターミナル」でPowerShellを開く。<code>Get-Location</code>で作業場所が<code>github-copilot-training\samples\session4\skill_create</code>であることを確認して、次を実行する。
+        <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell・skill_create で実行）">
+          <button class="copy-btn" data-copy-target="ho3-run-before">コピー</button>
+          <pre id="ho3-run-before">..\..\..\.venv\Scripts\python.exe server.py</pre>
+        </div>
+      </li>
+      <li>起動表示を確認して<code>http://127.0.0.1:5000/</code>を開き、既存Todoのタイトル・完了状態・件数が分かる一覧をキャプチャする。</li>
+      <li>確認用Todoだけを操作し、次の5項目とターミナルのHTTPステータスを確認する。
+        <table>
+          <thead><tr><th>確認項目</th><th>操作・期待する結果</th><th>HTTPステータス</th></tr></thead>
+          <tbody>
+            <tr><td>一覧</td><td>既存Todoのタイトル・完了状態・件数を確認する</td><td><code>GET</code>：200</td></tr>
+            <tr><td>追加</td><td><code>cleanup-check</code>を追加し、1件増えることを確認する</td><td><code>POST</code>：201</td></tr>
+            <tr><td>編集</td><td>確認用Todoを<code>cleanup-edited</code>に変更して保存する</td><td><code>PUT</code>：200</td></tr>
+            <tr><td>完了状態の保存</td><td>完了チェックを付け、再読み込み後もタイトルと完了状態が保持されることを確認する</td><td><code>PUT</code>：200 / 再読込の<code>GET</code>：200</td></tr>
+            <tr><td>削除</td><td>確認用Todoを削除し、再読み込み後に既存Todoの状態・件数が元に戻ることを確認する</td><td><code>DELETE</code>：204 / 再読込の<code>GET</code>：200</td></tr>
+          </tbody>
+        </table>
+      </li>
+      <li>確認が終わったら、ターミナルで<code>Ctrl+C</code>を押してサーバーを停止する。</li>
+    </ol>
+    <p>起動エラーや期待結果との相違があれば、削除へ進まず講師へ共有します。</p>
+
+    <h4 id="ho3-step2">手順2 削除できる条件を確認する</h4>
+    <ol class="steps">
+      <li>「<a href="#ho3-judge">判定の確認例</a>」の3行を読む。</li>
+      <li><code>list_todos()</code>は直接の呼び出しがなくても削除しない理由を確認する。</li>
+      <li>表の下の説明で、参照・副作用・外部利用・動的登録の確認不足は「判断保留」、候補なしは「該当なし」とすることを確認する。</li>
+    </ol>
+
+    <h4 id="ho3-step3">手順3 作成するSkillの要件を確認する</h4>
+    <p>次の3点を確認して、手順4へ進みます。</p>
+    <ul>
+      <li><strong>保存先</strong>：<code>.github/skills/safe-code-cleanup/SKILL.md</code>。</li>
+      <li><strong>流れ</strong>：候補を提案 → 許可待ち → 許可した候補だけ削除 → 削除前後を比較。</li>
+      <li><strong>役割</strong>：Skillは調査と許可範囲の編集、受講者は起動・画面操作・結果共有を行う。</li>
+    </ul>
+
+    <h4 id="ho3-step4">手順4 Skillの作成を依頼する</h4>
+    <ol class="steps">
+      <li><code>skill_create</code>を開いたウィンドウで、Copilot ChatをAgentモードにする。</li>
+      <li>次のプロンプトを送信する。
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agentモード）に貼るプロンプト">
+          <button class="copy-btn" data-copy-target="ho3-create-prompt">コピー</button>
+          <pre id="ho3-create-prompt">ハンズオン②を完了した、開いているskill_createのTodoアプリ用に、「不要コードを見つける」「許可された候補を削除する」の2段階を、同じチャットで行う1つのSkillを作成してください。
+
+【対象と保存先】
+Skill名：safe-code-cleanup
+保存先：.github/skills/safe-code-cleanup/SKILL.md
+対象：skill_create直下のserver.py全体。参照調査はskill_create内だけとし、親・他の演習は対象外。
+作成前に参照用Skill（.github/skills/todo-entry-point/SKILL.md）、server.py、templates/index.html、static/script.js、既存の変更、テスト・静的解析設定の有無を読み取りで確認してください。
+ハンズオン②で作成した.github/skills/project-file-guide/SKILL.mdと、②完了時のファイル・既存の変更は保持してください。
+作成・保存は指定のSKILL.mdだけを許可します。調査結果と方針を示した後、内容の提示だけで終わらず保存し、保存先と使い方を要約してください。
+先頭に---で囲んだYAML（name: safe-code-cleanupと利用条件が分かるdescription）を置き、本文に目的、利用する・しない場面、入力、以下の手順・制約・出力・完了条件を定義してください。機能変更には使用しません。
+
+【2段階の手順】
+第1段階：発見・提案（読み取り専用）
+- 対象全体から未使用import、未参照の内部関数・変数、到達不能な処理などを探す。候補名・件数を固定せず、作成時に見つけた名前も固定候補として埋め込まない。
+- ソース・参照・副作用・外部利用・動的登録・設定・既存テストを確認する。直接参照がないだけでは削除可能とせず、確認不足は判断保留。公開API、Flaskのルート登録、DB初期化などの副作用がある処理は保持する。
+- 「候補ID / 削除候補 / 根拠 / 参照確認 / 判定」の表を出す。IDは調査内で一意とし、実在するファイル・シンボル・削除範囲、確認済み・未確認の事実、判定（削除候補・削除可能・判断保留）を示す。候補がなければ「該当なし」。
+- 影響範囲と削除後の確認方法を示して応答を終え、同じチャットで候補IDを指定した削除許可を待つ。調査依頼や「削除可能」の判定は許可ではない。
+
+第2段階：許可後の削除・検証
+- 第1段階の表と明示的な許可ID・範囲を照合する。「直前の表で削除可能と判定された全候補」という許可も表から特定する。調査結果や許可範囲が不明なら変更せず確認する。
+- 削除前の実測報告を受け取り、一覧・追加・編集・完了状態の保存・削除の5項目について表示・保存結果、HTTPステータス、既存Todoの保持を確認する。期待結果だけでは確認済みにせず、未共有・未確認・失敗があれば削除を止める。一致したと報告された期待結果をそのまま使い、書き直しや穴埋め表は要求しない。
+- 削除直前にソース・参照・根拠を再確認し、調査時から変化があれば再調査・再許可を求める。削除可能かつ許可された範囲だけを最小差分で削除し、候補追加・別のリファクタリング・既存変更の取り消しは行わない。
+- 参照・差分を確認し、受講者へ再起動と削除前と同じ操作を案内する。自由文・キャプチャで削除後の実測報告を待ち、5項目の表示・保存結果、HTTPステータス、既存Todoの状態を削除前と比較する。
+
+【制約と完了条件】
+- Skill自身は環境構築、構文確認、サーバー起動・server.pyのimport、API呼び出し、画面・DB操作を行わない。作成時と第1段階はアプリを編集しない。
+- 実行時の編集は第2段階で許可されたserver.py内だけ。未許可・判断保留のコード、templates、static、DB、Skill、環境設定、既存の変更は保持する。
+- 存在しないファイル・テスト・確認コマンドを推測・追加しない。結果はチャットだけに報告し、結果ファイルは作らない。
+- 完了は「差分が許可範囲だけ」と「受講者の実測報告が削除前後で一致」を別々に判定する。Skillの参照・差分確認と受講者の実測に基づく比較を区別し、実施結果と未実施・未確認事項を示す。未共有・未確認・失敗は成功扱いせず、相違があっても追加のコード変更はしない。候補がなければ削除と削除後の比較は対象外とする。</pre>
+        </div>
+      </li>
+    </ol>
+
+    <h4 id="ho3-step5">手順5 作成したSkillを確認する</h4>
+    <ol class="steps">
+      <li>保存された<code>.github/skills/safe-code-cleanup/SKILL.md</code>を開き、<code>name: safe-code-cleanup</code>と利用条件を確認する。</li>
+      <li>本文を手順4のプロンプトと照合し、「調査して許可待ち」「許可範囲だけ削除」「削除前後の実測結果を比較」があることを確認する。</li>
+      <li>「ソース管理」を手順1の記録と比べ、追加された変更が指定Skillだけであることを確認する。</li>
+      <li>現在の変更一覧と差分をキャプチャする。手順8の比較に使う。</li>
+    </ol>
+    <p>不足があればSkillだけの修正を依頼します。アプリはまだ変更しません。</p>
+
+    <h4 id="ho3-step6">手順6 削除候補を調べる</h4>
+    <ol class="steps">
+      <li>新しいチャットを開き、Agentモードで<code>/</code>の候補から<code>safe-code-cleanup</code>を選ぶ。</li>
+      <li>手順1の5項目・HTTPステータス・既存Todoの保持が期待どおりだった場合だけ、次のプロンプトを送信する。
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat（Agentモード・新しいチャット）に貼るプロンプト（第1段階）">
+          <button class="copy-btn" data-copy-target="ho3-stage1-prompt">コピー</button>
+          <pre id="ho3-stage1-prompt">/safe-code-cleanup
+第1段階として、skill_create直下のserver.pyから不要なコードを見つけてください。
+
+削除前の動作を確認し、以下の結果がすべて期待どおりだったことを報告します。
+
+一覧：既存Todoのタイトル・完了状態・件数が表示されました。GET /api/todosは200でした。
+追加：cleanup-checkを追加し、Todoが1件増えました。POST /api/todosは201でした。
+編集：確認用Todoをcleanup-editedへ変更して保存し、タイトルが変わりました。PUT /api/todos/&lt;id&gt;は200でした。
+完了状態の保存：確認用Todoを完了にして再読み込みし、cleanup-editedのタイトルと完了状態が保持されました。PUT /api/todos/&lt;id&gt;と再読み込み時のGET /api/todosは200でした。
+削除：確認用Todoを削除し、再読み込みしても表示されず、既存Todoのタイトル・完了状態・件数が元に戻りました。DELETE /api/todos/&lt;id&gt;は204、再読み込み時のGET /api/todosは200でした。</pre>
+        </div>
+      </li>
+      <li>実行詳細で、作成した<code>SKILL.md</code>が読み込まれたことを確認する。</li>
+    </ol>
+    <p>候補が出ない場合は保存先・YAMLを確認してウィンドウを再読み込みし、解決しなければ講師へ共有します。未実施・未確認・相違がある場合は成功報告を送らず、実際の結果をCopilotへ共有します。</p>
+
+    <h4>候補表の確認</h4>
+    <p>次のような候補表が出て、コードを変更せず許可待ちで止まることを確認します。</p>
+    <table>
+      <thead><tr><th>候補ID</th><th>削除候補</th><th>根拠</th><th>参照確認</th><th>判定</th></tr></thead>
+      <tbody>
+        <tr><td>C001</td><td><code>server.py</code>の<code>import math</code></td><td>演習用に追加した未使用の標準ライブラリimport</td><td><code>math</code>はimportの1箇所だけ。アプリの初期化・設定に使用されていない</td><td>削除可能</td></tr>
+        <tr><td>C002</td><td><code>server.py</code>の<code>_legacy_normalize_title</code>の定義全体</td><td>副作用のない演習用関数で、現行の入力検証は<code>parse_todo_payload</code>が行う</td><td>定義以外の呼び出し・文字列参照・デコレーター登録がない</td><td>削除可能</td></tr>
+        <tr><td>C003</td><td><code>server.py</code>の<code>list_todos</code></td><td>直接の呼び出しは見つからなくても、Flaskが呼び出す</td><td><code>@app.route</code>でGET <code>/api/todos</code>に登録。<code>static/script.js</code>からこのAPIを利用</td><td>判断保留（削除対象外）。登録を確認したため保持する</td></tr>
+      </tbody>
+    </table>
+    <ul>
+      <li>表は出力例です。実際の候補ID・根拠・範囲を確認し、未確認事項がある候補は許可しません。</li>
+      <li>外部利用の未確認だけで判断保留になった場合は、手順7の補足へ進みます。</li>
+      <li>削除可能な候補がなければ調査結果を確認して終了します。削除と削除後の比較は対象外です。</li>
+    </ul>
+
+    <h4 id="ho3-step7">手順7 削除する候補を許可する</h4>
+    <ol class="steps">
+      <li>実際の候補表で「削除可能」の候補ID・根拠・参照確認・削除範囲を確認する。判断保留の候補は許可しない。</li>
+      <li>手順6で削除前の実測結果を共有済みであることを確認する。</li>
+      <li>全候補を許可する場合は、次のプロンプトを同じチャットへ送信する。一部だけなら「全候補」を実際の候補IDに置き換える。
+        <div class="code-block-wrap block--prompt" data-label="同じチャットに貼るプロンプト（削除の許可）">
+          <button class="copy-btn" data-copy-target="ho3-allow-prompt">コピー</button>
+          <pre id="ho3-allow-prompt">同じsafe-code-cleanupの第2段階へ進んでください。
+直前の調査結果の表で「削除可能」と判定された全候補について、根拠・参照確認・削除範囲を確認しました。その候補だけの削除を許可します。</pre>
+        </div>
+      </li>
+    </ol>
+
+    <h4>補足：外部利用が未確認のため判断保留になった場合</h4>
+    <p><code>import math</code>と<code>_legacy_normalize_title</code>が外部利用の未確認だけで判断保留になった場合に限り、次を行います。</p>
+    <ol class="steps">
+      <li>対象が独立した演習用コピーで、<code>server.py</code>や2候補を外部から利用・公開していないことを確認する。</li>
+      <li>確認できた場合だけ、次のプロンプトで再判定を依頼する。まだ削除は許可しない。
+        <div class="code-block-wrap block--prompt" data-label="同じチャットに貼るプロンプト（再判定の依頼）">
+          <button class="copy-btn" data-copy-target="ho3-rejudge-prompt">コピー</button>
+          <pre id="ho3-rejudge-prompt">同じsafe-code-cleanupで、直前の調査結果のうち、外部利用が未確認のため判断保留となった次の2候補を再判定してください。まだコードは削除しないでください。
+
+【利用者が確認した追加情報】
+今回の対象は、このハンズオンだけで使う独立した演習用Todoアプリのコピーです。このコピーのserver.pyや次の2候補を別プロジェクト・外部スクリプトなどからimport・利用しておらず、外部向けAPIとしても公開していません。
+この情報は利用者による確認結果として扱い、Skill自身が対象外を調査済みとは記載しないでください。
+
+【再判定する候補と範囲】
+1. server.pyのimport math行のみ（実行時の例：4行目。前後はimport loggingとimport sqlite3）。標準ライブラリの未使用importであり、アプリの初期化・設定に利用されていないか再確認してください。
+2. server.pyの_legacy_normalize_title定義とreturn title.strip()の2行のみ（実行時の例：25行目から。前後の関数はutc_nowとget_connection）。演習用の内部関数であり、現行のタイトル検証はparse_todo_payloadが行っています。定義以外の参照・文字列による利用・動的登録・副作用がないか再確認してください。
+行番号だけに依存せず、最新ソースのシンボルと前後のコードを照合し、直前の表の候補IDを維持してください。
+
+この追加情報と対象内の参照確認を合わせ、外部利用の未確認という保留理由が解消できるか判断してください。解消できた候補だけを「削除可能」に更新し、根拠と削除範囲を示してください。別の懸念や確認不足があれば判断保留を維持してください。
+再判定の表を報告したところで応答を終え、削除許可を待ってください。</pre>
+        </div>
+      </li>
+      <li>再判定の根拠・参照確認・範囲を確認し、2候補とも「削除可能」になった場合だけ次を送信する。一方が判断保留なら、削除可能な候補ID・範囲だけを指定する。
+        <div class="code-block-wrap block--prompt" data-label="同じチャットに貼るプロンプト（削除の許可）">
+          <button class="copy-btn" data-copy-target="ho3-allow-prompt2">コピー</button>
+          <pre id="ho3-allow-prompt2">同じsafe-code-cleanupの第2段階へ進んでください。
+直前の調査結果の表で「削除可能」と判定された全候補について、根拠・参照確認・削除範囲を確認しました。その候補だけの削除を許可します。</pre>
+        </div>
+      </li>
+    </ol>
+
+    <h4>削除結果の確認</h4>
+    <p>許可した候補だけが削除され、判断保留・未許可の候補は残っていることを確認します。動作確認は手順8で行います。</p>
+
+    <h4 id="ho3-step8">手順8 差分と削除後の動作を確認する</h4>
+    <ol class="steps">
+      <li>「ソース管理」を手順5のキャプチャと比べ、追加のコード変更が許可した<code>server.py</code>の削除範囲だけで、Skillや対象外に変更がないことを確認する。</li>
+      <li>Skillの報告が「受講者の動作確認待ち」になっているか確認する。実測前に成功扱いされていれば、報告の修正を依頼する。</li>
+      <li>手順1のターミナルで、起動中なら<code>Ctrl+C</code>で停止する。ターミナルを閉じた場合は、<code>skill_create</code>を開いたVS Codeで新しいPowerShellターミナルを開く。<code>Get-Location</code>で作業場所が<code>github-copilot-training\samples\session4\skill_create</code>であることを確認し、教材ルートの仮想環境を指定した次のコマンドで再起動する。仮想環境の有効化は不要。
+        <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（PowerShell・skill_create で実行）">
+          <button class="copy-btn" data-copy-target="ho3-run-after">コピー</button>
+          <pre id="ho3-run-after">..\..\..\.venv\Scripts\python.exe server.py</pre>
+        </div>
+      </li>
+      <li><code>http://127.0.0.1:5000/</code>を開き直し、既存Todoのタイトル・完了状態・件数を手順1のキャプチャと比べる。</li>
+      <li>手順1の表と同じ入力・順番で確認用Todoを操作し、表示・保存結果とHTTPステータスを比べる。IDや時刻の違いは比較対象にしない。</li>
+      <li>5項目と既存Todoの保持がすべて一致した場合だけ、次のプロンプトを同じチャットへ送信する。未確認・相違・失敗があれば成功報告を送らず、実際の結果を共有する。
+        <div class="code-block-wrap block--prompt" data-label="同じチャットに貼るプロンプト（削除前後の比較）">
+          <button class="copy-btn" data-copy-target="ho3-compare-prompt">コピー</button>
+          <pre id="ho3-compare-prompt">同じsafe-code-cleanupの第2段階として、削除前後の動作確認結果を比較してください。
+コード削除後にサーバーを再起動し、削除前と同じ入力・順番で操作しました。以下の結果がすべて、このチャットで共有済みの削除前の結果と一致したことを報告します。
+
+一覧：既存Todoのタイトル・完了状態・件数が表示されました。GET /api/todosは200でした。
+追加：cleanup-checkを追加し、Todoが1件増えました。POST /api/todosは201でした。
+編集：確認用Todoをcleanup-editedへ変更して保存し、タイトルが変わりました。PUT /api/todos/&lt;id&gt;は200でした。
+完了状態の保存：確認用Todoを完了にして再読み込みし、cleanup-editedのタイトルと完了状態が保持されました。PUT /api/todos/&lt;id&gt;と再読み込み時のGET /api/todosは200でした。
+削除：確認用Todoを削除し、再読み込みしても表示されず、既存Todoのタイトル・完了状態・件数が元に戻りました。DELETE /api/todos/&lt;id&gt;は204、再読み込み時のGET /api/todosは200でした。
+
+上記の報告と、このチャットで共有済みの削除前の結果を比較し、コードの差分確認の結果と合わせて報告してください。
+差分が許可した候補の削除に限られることと、今回確認した5項目の動作が削除前後で一致することは、別々に判定してください。
+
+動作確認は受講者による実測の報告に基づく比較と明記してください。
+未共有・未実施・未確認の項目は成功扱いせず、不足する確認事項を示してください。独立した構文確認は未実施として扱ってください。
+確認していない入力条件まで動作を保証せず、相違や失敗があれば追加のコード変更をせずに報告してください。</pre>
+        </div>
+      </li>
+      <li>確認用Todoが残っていないことを確認し、<code>Ctrl+C</code>でサーバーを停止する。相違や失敗があれば講師へ共有する。</li>
+    </ol>
+    <p>差分と動作の一致は別々に判定します。未実施・未確認はそのまま報告し、確認していない条件や自動テストまで成功扱いしません。</p>
+    <p>意図しない変更があれば追加の編集を止め、講師へ共有します。戻すのは今回の意図しない変更部分だけとし、既存の変更・Todo・Skillは保持します。</p>
+    </section>
+
+    <section class="page" id="p7" data-title="全体の振り返り・Q＆A・アンケート回答" data-time="110–120 分">
+    <h2 id="review">全体の振り返り・Q＆A・アンケート回答（10 分）</h2>
+    <ul>
+      <li><strong>用途と定義</strong>：Skillと通常のプロンプト・Instructionsの使い分け、名前・説明・利用条件・入力・手順・出力を説明できる。</li>
+      <li><strong>作成・修正・実行</strong>：共通規約の修正とSkillの作成・保存・呼び出しを体験し、本文・参照資料の読み込みを確認できる。自動選択は試した結果と未確認を分ける。</li>
+      <li><strong>結果と安全確認</strong>：実行結果と期待値の差を説明し、修正前後のメタ情報・予約ID、実在する案内先、許可した範囲以外に変更がないことを確認できる。</li>
+    </ul>
+
+    <h3 id="review-qa">Q&amp;A</h3>
+    <p>ここまでの内容で疑問点があれば回答しますので、遠慮なく質問してください。</p>
+
+    <h3 id="review-survey">アンケート回答</h3>
+    <p>次のアンケートフォームに回答してください。満足度・改善要望・感想を共有していただけると、次回以降の教材改善に役立ちます。</p>
+    <div class="code-block-wrap block--output" data-label="第 4 回 アンケートフォーム URL">
+      <button class="copy-btn" data-copy-target="survey-session4">コピー</button>
+      <pre id="survey-session4">https://forms.cloud.microsoft/r/qZ5a8682Gt</pre>
+    </div>
+    <p class="note-line"><a href="https://forms.cloud.microsoft/r/qZ5a8682Gt" target="_blank" rel="noopener">このリンクからも開けます</a>。</p>
+    </section>
+  </main>
+</div>
+
+<a href="#top" class="top-link" title="ページ先頭へ" aria-label="ページ先頭へ">↑</a>
+
+<script src="assets/mermaid.min.js"></script>
+<script src="assets/handout.js"></script>
+</body>
+</html>

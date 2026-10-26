@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pair Programming TODO アプリ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📝 TODO アプリ</h1>
+      <p class="subtitle">ペアプロ用 / Copilot ハンズオン題材</p>
+    </header>
+
+    <section class="search-section">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="タイトル・説明で絞り込み（例: 買い物）"
+        autocomplete="off"
+      />
+      <button id="searchBtn">絞り込む</button>
+      <button id="resetBtn" class="secondary">リセット</button>
+    </section>
+
+    <section class="add-section">
+      <h2>新規追加</h2>
+      <form id="addForm">
+        <input type="text" id="newTitle" placeholder="タイトル（必須）" required />
+        <input type="text" id="newDescription" placeholder="説明(任意)" />
+        <button type="submit">追加</button>
+      </form>
+    </section>
+
+    <section class="list-section">
+      <h2>TODO 一覧 <span id="count" class="count">0</span></h2>
+      <ul id="todoList" class="todo-list"></ul>
+    </section>
+
+    <footer>
+      <small>API: <code>/api/todos</code> | DB: SQLite (todos.db)</small>
+    </footer>
+  </div>
+
+  <!-- 編集ダイアログ -->
+  <dialog id="editDialog">
+    <form method="dialog" id="editForm">
+      <h3>TODO を編集</h3>
+      <input type="hidden" id="editId" />
+      <label>
+        タイトル
+        <input type="text" id="editTitle" />
+      </label>
+      <label>
+        説明
+        <input type="text" id="editDescription" />
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="editCompleted" />
+        完了
+      </label>
+      <div class="dialog-buttons">
+        <button type="button" id="editCancel" class="secondary">キャンセル</button>
+        <button type="button" id="editSave">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

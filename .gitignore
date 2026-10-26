@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.env
+.env.local
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 教材実行時の生成物
+samples/session1/data/sample_output.csv
+samples/session2/report_output.json
+samples/session3/todo-app-buggy/todos.db
+# 履歴の保存先は ~/.calorie_log（ホーム直下）。以下は AI が誤ってフォルダ内に生成した場合の保険
+samples/session3/plan_mode_exercise/.calorie_log
+
+# OS・エディタ
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/

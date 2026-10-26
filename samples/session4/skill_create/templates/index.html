@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo&#19968;&#35239;</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <p class="eyebrow">DAILY WORKBENCH</p>
+      <h1>Todo&#19968;&#35239;</h1>
+      <p class="subtitle">&#20170;&#26085;&#12398;&#20316;&#26989;&#12434;&#12289;&#12402;&#12392;&#12388;&#12389;&#12388;&#29255;&#12389;&#12369;&#12427;&#12290;</p>
+    </header>
+
+    <section class="composer" aria-labelledby="composer-title">
+      <div>
+        <p class="section-label">NEW TASK</p>
+        <h2 id="composer-title">Todo&#12434;&#36861;&#21152;</h2>
+      </div>
+      <form id="todo-form">
+        <label for="title">&#12479;&#12452;&#12488;&#12523;</label>
+        <div class="form-row">
+          <input id="title" name="title" type="text" maxlength="15" required autocomplete="off" placeholder="&#20363;: &#12513;&#12540;&#12523;&#12434;&#30906;&#35469;&#12377;&#12427;">
+          <button type="submit">&#36861;&#21152;</button>
+        </div>
+        <p id="form-message" class="message" role="alert" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="list-section" aria-labelledby="list-title">
+      <div class="list-heading">
+        <div>
+          <p class="section-label">YOUR LIST</p>
+          <h2 id="list-title">Todo</h2>
+        </div>
+        <span id="todo-count" class="count">0&#20214;</span>
+      </div>
+      <p id="status-message" class="status-message" role="status" aria-live="polite">&#35501;&#12415;&#36796;&#12415;&#20013;...</p>
+      <ul id="todo-list" class="todo-list"></ul>
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

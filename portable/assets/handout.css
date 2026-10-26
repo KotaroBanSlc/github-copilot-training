@@ -1,0 +1,552 @@
+/*
+  受講者ハンドアウト 共通スタイル（session1 / 2 / 3 で共用）
+  ------------------------------------------------------------------
+  対になる JS: assets/handout.js
+  HTML 側の前提:
+    - <body id="top">
+    - <header class="page-header"> … <h1> と <p class="header-meta">
+    - <div class="layout"> > <nav class="toc"> + <main>
+    - <main> の直下に <section class="page" id="pN" data-title="…" data-time="…">
+      を並べる。ページ送りは handout.js が担当する
+      （JS が動かない環境では全ページがそのまま縦に並ぶ）
+  オフライン・file:// での起動を前提にしているため、
+  この CSS と handout.js は HTML と同じ階層の assets/ に置くこと。
+*/
+:root{
+  --accent:#0366d6;
+  --accent-dark:#024ea3;
+  --bg:#ffffff;
+  --bg-soft:#f4f6f8;
+  --border:#c8d1da;
+  --text:#111418;
+  --note-bg:#ddf4ff;
+  --note-border:#3d92e0;
+  --caution-bg:#fff4c2;
+  --caution-border:#bf8700;
+  --checkpoint-bg:#eaf6e4;
+  --checkpoint-border:#2da44e;
+  --code-bg:#0d1117;
+  --code-text:#e6edf3;
+  --sidebar-w:clamp(220px, 17vw, 300px);
+  /* 白ではない「面」の色。解説ボックス・表ヘッダ・図の縁取りに使う */
+  --panel:#f0f4f9;
+  --panel-line:#ccd7e3;
+  --muted:#3b444d;
+  /* 本文は 1 行 44 全角前後に収める。表・図・コードはやや広く使う */
+  --measure:44em;
+  --measure-wide:64em;
+  --mono:Consolas,"SFMono-Regular",Menlo,"DejaVu Sans Mono",monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16.5px;}
+body{
+  margin:0;
+  font-family:"Yu Gothic UI","Meiryo","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+  color:var(--text);
+  background:var(--bg);
+  line-height:1.8;
+}
+a{color:var(--accent);}
+
+/* ヘッダ：背景がグラデーションのため、文字は必ず白＋十分なコントラストを確保する */
+header.page-header{
+  background:linear-gradient(135deg,var(--accent),var(--accent-dark));
+  color:#fff;
+  padding:30px clamp(16px,2.4vw,44px);
+}
+header.page-header h1{margin:0 0 14px;font-size:2rem;line-height:1.4;color:#fff;}
+/* 受講対象などの情報。青地の上に白いカードとして置き、
+   項目名はバッジにするのでラベルのあとにコロンは置かない */
+header.page-header .header-meta{
+  margin:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 26px;
+  background:#fff;
+  color:var(--text);
+  border-radius:8px;
+  padding:11px 16px;
+  font-size:.95rem;
+  box-shadow:0 1px 4px rgba(0,0,0,.22);
+}
+.header-meta__item{display:flex;gap:.6em;align-items:baseline;}
+.header-meta strong{
+  flex:0 0 auto;
+  background:var(--accent);color:#fff;
+  border-radius:999px;
+  padding:1px 10px;
+  font-size:.78rem;
+  font-weight:700;
+}
+
+/* レイアウト：目次を画面左端に固定し、本文は画面幅に応じて可変で広がる。
+   目次の背景と区切り線は .layout::before でページ全高に敷く
+   （nav 自体に背景を持たせると、nav の高さ分で罫線が途切れて見える） */
+.layout{display:flex;align-items:flex-start;width:100%;position:relative;}
+.layout::before{
+  content:"";
+  position:absolute;
+  top:0;bottom:0;left:0;
+  width:var(--sidebar-w);
+  background:var(--bg-soft);
+  border-right:1px solid var(--border);
+}
+nav.toc{
+  width:var(--sidebar-w);
+  flex:0 0 auto;
+  padding:22px 14px 28px;
+  position:sticky;
+  top:0;
+  z-index:1;
+  align-self:flex-start;
+  max-height:100vh;
+  overflow-y:auto;
+  background:transparent;
+}
+nav.toc h2{font-size:.82rem;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;font-weight:700;border:none;padding:0;}
+nav.toc ul{list-style:none;margin:0;padding:0;}
+nav.toc li{margin:1px 0;}
+nav.toc a{
+  display:block;
+  padding:6px 10px;
+  border-radius:6px;
+  text-decoration:none;
+  color:var(--text);
+  font-size:.88rem;
+  line-height:1.45;
+}
+nav.toc a:hover{background:#e0e7ee;}
+nav.toc a.active{background:var(--accent);color:#fff;font-weight:700;}
+/* ページ番号付きの目次項目 */
+nav.toc .toc-page{display:flex;gap:8px;align-items:baseline;}
+nav.toc .toc-num{
+  flex:0 0 auto;
+  min-width:1.5em;
+  text-align:center;
+  font-size:.75rem;
+  font-weight:700;
+  color:var(--muted);
+  background:#e0e7ee;
+  border-radius:4px;
+  padding:0 3px;
+}
+nav.toc .toc-page.active .toc-num{background:rgba(255,255,255,.28);color:#fff;}
+/* 目次の第 2 階層（表示中ページの中見出しのみ展開する） */
+nav.toc .toc-sub{margin:2px 0 6px 20px;padding-left:8px;border-left:2px solid #d5dde6;display:none;}
+nav.toc li.is-current>.toc-sub{display:block;}
+nav.toc .toc-sub a{font-size:.81rem;padding:4px 8px;color:var(--muted);}
+nav.toc .toc-sub a.active{background:#d7e8fa;color:var(--accent-dark);font-weight:700;}
+/* 全ページ表示トグル */
+.toc-toggle{
+  display:block;width:100%;
+  margin-top:14px;padding:7px 10px;
+  background:#fff;color:var(--text);
+  border:1px solid var(--border);border-radius:6px;
+  font-family:inherit;font-size:.8rem;cursor:pointer;
+}
+.toc-toggle:hover{background:#e0e7ee;}
+.toc-toggle[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+main{
+  flex:1 1 auto;
+  min-width:0;
+  max-width:var(--measure-wide);
+  margin-inline:auto;
+  position:relative;
+  z-index:1;
+  padding:30px clamp(16px,3vw,56px) 110px;
+}
+
+/* ---------------------------------------------------------------
+   ページ送り
+   既定では全 .page が縦に並ぶ（JS 無効・CSS のみでも全文が読める）。
+   handout.js が body に .js-paged を付けて初めて 1 ページ表示になる
+   --------------------------------------------------------------- */
+.page{display:block;}
+body.js-paged .page{display:none;}
+body.js-paged .page.is-active{display:block;}
+body.js-paged.show-all .page{display:block;}
+
+/* ページ先頭の見出しは上の余白を詰める（ページ切り替えで先頭に来るため） */
+.page>h2:first-child{margin-top:.2em;}
+/* 全ページ表示のときはページの切れ目を線で示す */
+body.show-all .page+.page{border-top:2px dashed var(--border);padding-top:2.4em;margin-top:3em;}
+
+/* 前へ／次へ */
+.pager{
+  display:flex;
+  gap:14px;
+  margin:3.4em 0 0;
+  padding-top:1.6em;
+  border-top:1px solid var(--border);
+}
+body.show-all .pager{display:none;}
+.pager a{
+  flex:1 1 0;
+  min-width:0;
+  display:block;
+  padding:11px 15px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  background:#fff;
+  text-decoration:none;
+  color:var(--text);
+  box-shadow:0 1px 2px rgba(17,20,24,.06);
+}
+.pager a:hover{border-color:var(--accent);background:var(--panel);}
+.pager .pager__dir{display:block;font-size:.78rem;font-weight:700;color:var(--accent);}
+.pager .pager__label{display:block;font-size:.95rem;}
+.pager .pager__spacer{flex:1 1 0;}
+/* 「次へ」は進行方向なので緑で強調し、「前へ」と区別する */
+.pager .pager__next{
+  text-align:right;
+  background:var(--checkpoint-bg);
+  border-color:var(--checkpoint-border);
+}
+.pager .pager__next .pager__dir{color:#14532d;}
+.pager .pager__next:hover{background:#d9eecf;border-color:#1a7f37;}
+/* 見出しは 3 段階の形で区別する（h2＝下線／h3＝左バー／h4＝小見出し記号）。
+   文字サイズだけの差だと本文の <strong> と区別がつかない */
+h2,h3,h4{line-height:1.45;}
+h2{
+  font-size:1.6rem;
+  margin:2.8em 0 .9em;
+  padding:0 0 10px;
+  border-bottom:3px solid var(--accent);
+  scroll-margin-top:24px;
+}
+h3{
+  font-size:1.25rem;
+  margin:2.2em 0 .7em;
+  padding:1px 0 1px 12px;
+  border-left:5px solid var(--accent);
+  scroll-margin-top:24px;
+}
+h4{
+  font-size:1.06rem;
+  margin:1.9em 0 .6em;
+  color:var(--accent-dark);
+}
+h4::before{content:"■ ";color:var(--accent);font-size:.8em;}
+
+/* 本文の 1 行を 44 全角前後に制限する。表・図・コードは main 幅いっぱいを使う */
+main p,main ul,main ol,main dl,
+main .callout,main .checkpoint,main details,
+main .session-meta,main .nest{max-width:var(--measure);}
+main p{margin:0 0 1.1em;}
+main ul,main ol{padding-left:1.6em;margin:0 0 1.3em;}
+main li{margin:.45em 0;}
+main li>ul,main li>ol{margin:.4em 0 .2em;}
+/* 表：行の追跡を助けるためゼブラ＋ホバーを付ける。
+   1 列目は見出し的な短いラベルなので keep-all で不自然な折り返しを防ぐ */
+table{border-collapse:collapse;width:100%;margin:1.4em 0;font-size:.95rem;line-height:1.7;}
+th,td{border:1px solid var(--border);padding:10px 12px;text-align:left;vertical-align:top;}
+thead th{background:#e5ecf4;font-weight:700;border-bottom:2px solid #aebccb;}
+tbody tr:nth-child(even)>td{background:#fafbfc;}
+tbody tr:hover>td{background:var(--panel);}
+tbody tr.row-hl>td{background:var(--note-bg);}
+tbody tr.row-hl>td:first-child{box-shadow:inset 4px 0 0 var(--note-border);}
+tbody tr.row-hl:hover>td{background:#cfeaff;}
+th:first-child,td:first-child{word-break:keep-all;}
+
+/* インラインコード：白背景との差が 1.06:1 しかなかったため罫線で輪郭を付ける */
+code{
+  background:#eaf0f6;
+  border:1px solid #cdd8e3;
+  border-radius:5px;
+  padding:.08em .38em;
+  font-size:.88em;
+  font-family:var(--mono);
+  /* 行末で折り返しても枠線が割れず、断片ごとに角丸が付くようにする */
+  -webkit-box-decoration-break:clone;
+  box-decoration-break:clone;
+}
+pre{
+  margin:0;
+  background:var(--code-bg);
+  color:var(--code-text);
+  padding:14px 16px;
+  overflow-x:auto;
+  font-size:.92rem;
+  line-height:1.65;
+  font-family:var(--mono);
+}
+pre code{background:none;padding:0;color:inherit;border:none;}
+
+/* Mermaid で描く図（描画は handout.js が担当）。
+   描画されるまでは記法がそのまま見えるため、コードブロックの黒地ではなく
+   白い面のカードとして置き、描画後の SVG と見た目が地続きになるようにする */
+pre.mermaid{
+  margin:1.6em 0;
+  max-width:var(--measure-wide);
+  background:#fff;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:18px 16px;
+  text-align:center;
+  font-size:.86rem;
+  box-shadow:0 1px 3px rgba(17,20,24,.08);
+}
+pre.mermaid svg{max-width:100%;height:auto;}
+
+/* コードブロック：用途（貼るプロンプト／実行コマンド／コード例／出力例）を
+   ラベル帯と色で区別する。受講者が「何をコピーするのか」を迷わないようにするため */
+.code-block-wrap{
+  position:relative;
+  margin:1.4em 0;
+  border:1px solid var(--code-bg);
+  border-radius:8px;
+  overflow:hidden;
+}
+.code-block-wrap[data-label]::before{
+  content:attr(data-label);
+  display:block;
+  padding:8px 96px 8px 12px;
+  font-size:.78rem;
+  font-weight:700;
+  letter-spacing:.02em;
+  background:#161b22;
+  color:#e6edf3;
+  border-bottom:1px solid #30363d;
+}
+.copy-btn{
+  position:absolute;top:5px;right:8px;z-index:2;
+  background:#30363d;color:#fff;border:1px solid #6e7681;
+  border-radius:6px;padding:4px 10px;font-size:.75rem;cursor:pointer;
+  font-family:inherit;
+}
+.copy-btn:hover{background:#484f58;}
+.copy-btn.copied{background:#1a7f37;border-color:#1a7f37;}
+.block--prompt{border-color:var(--accent);}
+.block--prompt[data-label]::before{background:var(--accent);color:#fff;border-bottom-color:var(--accent-dark);}
+.block--terminal[data-label]::before{background:#161b22;}
+.block--code[data-label]::before{background:#21262d;}
+/* 出力例はコピー対象ではなく「見比べるもの」なので、明るい面にして反転させる */
+.block--output{border-color:var(--border);}
+.block--output[data-label]::before{background:#e5ecf4;color:var(--text);border-bottom-color:var(--border);}
+.block--output pre{background:#fff;color:var(--text);}
+.block--output .copy-btn{background:#fff;color:var(--text);border-color:var(--border);}
+.block--output .copy-btn:hover{background:#e5ecf4;}
+
+/* 補足ボックス：無印／note／caution／checkpoint／details を別々の面として見せる */
+.callout{
+  background:var(--panel);
+  border:1px solid var(--panel-line);
+  border-left:5px solid var(--accent);
+  border-radius:0 8px 8px 0;
+  padding:12px 16px;
+  margin:1.4em 0;
+}
+.callout.note{background:var(--note-bg);border-color:#9fd2f7;border-left-color:var(--note-border);}
+.callout.caution{background:var(--caution-bg);border-color:#e3cc78;border-left-color:var(--caution-border);}
+.callout .callout-title{font-weight:700;font-size:1.02rem;margin-bottom:6px;display:block;color:var(--accent-dark);}
+.callout.note .callout-title{color:#0a4f8a;}
+.callout.caution .callout-title{color:#7a5600;}
+.callout ul,.callout ol{margin:.5em 0;}
+.callout>*:last-child{margin-bottom:0;}
+.checkpoint{
+  border:1px solid var(--checkpoint-border);
+  border-left:5px solid var(--checkpoint-border);
+  background:var(--checkpoint-bg);
+  border-radius:0 8px 8px 0;
+  padding:14px 16px;
+  margin:1.6em 0;
+}
+.checkpoint__header{font-weight:700;font-size:1.02rem;color:#14532d;margin-bottom:8px;}
+.checkpoint__header::before{
+  content:"✓";
+  display:inline-block;
+  width:1.4em;height:1.4em;line-height:1.4em;
+  margin-right:.45em;
+  border-radius:50%;
+  background:var(--checkpoint-border);color:#fff;
+  font-size:.78em;text-align:center;
+}
+.checkpoint ul{margin:0;padding-left:1.4em;}
+.checkpoint>*:last-child{margin-bottom:0;}
+details{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:12px 16px;
+  margin:1.4em 0;
+  background:#fff;
+  box-shadow:0 1px 2px rgba(17,20,24,.06);
+}
+details summary{
+  cursor:pointer;font-weight:700;color:var(--accent-dark);
+  list-style:none;display:flex;gap:.5em;align-items:baseline;
+}
+details summary::-webkit-details-marker{display:none;}
+details summary::before{content:"＋";color:var(--accent);font-weight:700;flex:0 0 auto;}
+details[open] summary::before{content:"−";}
+details[open] summary{margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--border);}
+details>*:last-child{margin-bottom:0;}
+
+/* 想定時間などのセクション情報。薄い文字色は使わず、背景と罫線で区別する。
+   項目名（想定時間・目的・題材）はバッジ化して 1 項目 1 行で並べる。
+   バッジ自体が区切りになるので、ラベルのあとにコロンは置かない */
+.session-meta{
+  background:var(--panel);
+  border:1px solid var(--panel-line);
+  border-left:5px solid var(--accent);
+  border-radius:0 8px 8px 0;
+  padding:11px 14px;
+  margin:.4em 0 1.6em;
+  font-size:.97rem;
+  color:var(--text);
+}
+.session-meta__item{display:block;}
+.session-meta__item+.session-meta__item{margin-top:6px;}
+.session-meta strong{
+  display:inline-block;
+  min-width:5.6em;
+  text-align:center;
+  background:var(--accent);color:#fff;
+  border-radius:999px;
+  padding:1px 10px;
+  margin-right:.6em;
+  font-size:.8rem;
+  font-weight:700;
+  vertical-align:.08em;
+}
+.note-line{font-size:.95rem;color:var(--muted);}
+
+/* 用語の包含関係を示す入れ子ボックス */
+.nest{margin:1em 0;}
+.nest__l1{border:2px solid var(--accent);border-radius:10px;padding:12px 14px;background:#eef5fd;font-weight:700;}
+.nest__l2{border:2px solid var(--accent-dark);border-radius:10px;padding:12px 14px;background:#e0ecfa;margin-top:10px;font-weight:700;}
+.nest__l3{border:2px solid #1a7f37;border-radius:10px;padding:12px 14px;background:#e5f4e9;margin-top:10px;font-weight:700;}
+.nest__sub{display:block;font-weight:400;font-size:.9rem;margin-top:2px;}
+
+/* 画面キャプチャ（assets/images/*.png が無い場合はインライン SVG の説明図を表示）。
+   図の縁取りは figure 側のカード枠だけにして、二重の枠線にならないようにする */
+figure.shot{
+  margin:1.8em 0;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:0;
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(17,20,24,.08);
+}
+figure.shot img{display:block;max-width:100%;height:auto;margin:0 auto;background:#fff;}
+figure.shot figcaption{
+  margin:0;
+  padding:10px 14px;
+  font-size:.9rem;
+  font-weight:700;
+  text-align:center;
+  color:var(--text);
+  background:var(--panel);
+  border-top:1px solid var(--border);
+}
+.shot__fallback{display:none;}
+.shot--missing .shot__fallback{display:block;}
+.shot__fallback svg{display:block;width:100%;max-width:860px;height:auto;margin:0 auto;background:#fff;}
+/* 手順の中に図を差し込む場合は、その手順の説明文から離れないよう余白を詰める */
+ol.steps figure.shot{margin:.9em 0 .3em;}
+
+/* 本日のゴール：到達点を 1 件 1 カードで見せる。
+   最初に目を通す箇所なので本文より少し大きめの字にする */
+ol.goals{
+  list-style:none;
+  counter-reset:goal;
+  padding-left:0;
+  margin:1.2em 0 1.8em;
+  max-width:var(--measure-wide);
+  display:grid;
+  gap:12px;
+}
+ol.goals>li{
+  counter-increment:goal;
+  position:relative;
+  margin:0;
+  padding:14px 18px 14px 64px;
+  font-size:1.08rem;
+  line-height:1.7;
+  background:var(--panel);
+  border:1px solid var(--panel-line);
+  border-left:5px solid var(--accent);
+  border-radius:0 10px 10px 0;
+}
+ol.goals>li::before{
+  content:counter(goal);
+  position:absolute;left:16px;top:14px;
+  width:33px;height:33px;line-height:33px;
+  border-radius:50%;
+  background:var(--accent);color:#fff;
+  font-size:.98rem;font-weight:700;
+  text-align:center;
+}
+@media (min-width:1100px){
+  ol.goals{grid-template-columns:1fr 1fr;}
+}
+
+/* 手順：VS Code と往復しながら読むため、番号を大きくし 1 ステップずつ区切る */
+ol.steps{list-style:none;counter-reset:step;padding-left:0;margin:1.2em 0 1.6em;}
+ol.steps>li{
+  counter-increment:step;
+  position:relative;
+  margin:0;
+  padding:3px 0 14px 46px;
+  border-bottom:1px dashed #d5dde6;
+}
+ol.steps>li:last-child{border-bottom:none;padding-bottom:4px;}
+ol.steps>li::before{
+  content:counter(step);
+  position:absolute;left:0;top:3px;
+  width:30px;height:30px;line-height:30px;
+  border-radius:50%;
+  background:var(--accent);color:#fff;
+  font-size:.9rem;font-weight:700;
+  text-align:center;
+}
+hr{border:none;border-top:1px solid var(--border);margin:2.4em 0;}
+.top-link{
+  position:fixed;right:22px;bottom:22px;
+  background:var(--accent);color:#fff;
+  border:2px solid #fff;border-radius:50%;
+  width:46px;height:46px;
+  display:flex;align-items:center;justify-content:center;
+  text-decoration:none;font-size:1.1rem;
+  box-shadow:0 2px 10px rgba(17,20,24,.3);
+}
+@media (max-width: 900px){
+  .layout{display:block;}
+  .layout::before{display:none;}
+  /* 目次が本文の上に全項目積み上がるのを避け、スクロールする小箱にする */
+  nav.toc{
+    position:static;width:auto;
+    max-height:44vh;overflow-y:auto;
+    padding:16px;
+    background:var(--bg-soft);
+    border-bottom:1px solid var(--border);
+  }
+  main{max-width:none;padding:22px 18px 96px;}
+  h2{font-size:1.4rem;}
+  h3{font-size:1.15rem;}
+  .pager{flex-direction:column;}
+  .pager .pager__next{text-align:left;}
+  .pager .pager__spacer{display:none;}
+}
+
+/* ---------------------------------------------------------------
+   印刷：ページ送りを解除して全ページを出す。
+   ナビゲーション類は落とし、ページ単位で改ページする
+   --------------------------------------------------------------- */
+@media print{
+  body.js-paged .page{display:block;}
+  nav.toc,.layout::before,.pager,.top-link,.toc-toggle,.copy-btn{display:none !important;}
+  .layout{display:block;}
+  main{max-width:none;margin:0;padding:0;}
+  html{font-size:11pt;}
+  header.page-header{background:var(--accent-dark);color:#fff;}
+  /* 改ページで区切るので、通し表示用の破線は消す */
+  .page+.page{break-before:page;page-break-before:always;border-top:none;padding-top:0;margin-top:0;}
+  h2,h3,h4{break-after:avoid;page-break-after:avoid;}
+  table,figure.shot,.code-block-wrap,.checkpoint,.callout,pre.mermaid{break-inside:avoid;page-break-inside:avoid;}
+  details{border:none;box-shadow:none;padding:0;}
+  details>*:not(summary){display:block;}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:.85em;color:var(--muted);}
+}

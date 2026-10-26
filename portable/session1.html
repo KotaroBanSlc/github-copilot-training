@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第 1 回：生成 AI と GitHub Copilot の基礎 | 受講者ハンドアウト</title>
+<link rel="stylesheet" href="assets/handout.css">
+</head>
+<body id="top">
+
+<header class="page-header">
+  <h1>第 1 回：生成 AI と GitHub Copilot の基礎</h1>
+  <div class="header-meta">
+    <span class="header-meta__item"><strong>対象読者</strong>開発経験はあるが、AI コーディングツールを利用したことが無い方</span>
+    <span class="header-meta__item"><strong>所要時間</strong>120 分（休憩 5 分含む）</span>
+    <span class="header-meta__item"><strong>形式</strong>個人ワーク</span>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="目次">
+    <h2>目次</h2>
+    <!-- 目次は assets/handout.js が section.page から自動生成します -->
+    <ul id="toc-list"></ul>
+  </nav>
+
+  <main>
+    <section class="page" id="p1" data-title="オリエンテーション" data-time="0–15 分">
+    <h2 id="training-overview">全3回のトレーニング概要</h2>
+    <ul>
+      <li><strong>第1回：基礎</strong>　生成AIとGitHub Copilotの概要を学び、コード補完、処理説明、処理フロー生成を体験します。</li>
+      <li><strong>第2回：活用</strong>　プロンプト設計を学び、リファクタリング、バグ修正、テスト生成、Vibe Codingを体験します。</li>
+      <li><strong>第3回：実践</strong>　Planモードを活用した開発と、バグ修正や機能改善を含む課題解決に取り組みます。</li>
+    </ul>
+
+    <h2 id="agenda">第1回目のアジェンダ</h2>
+    <table>
+      <thead><tr><th>時間</th><th>内容</th><th>所要</th></tr></thead>
+      <tbody>
+        <tr><td>0–15 分</td><td>導入：オリエンテーション・環境チェック</td><td>15 分</td></tr>
+        <tr><td>15–30 分</td><td>講義① 生成 AI とは？</td><td>15 分</td></tr>
+        <tr><td>30–40 分</td><td>講義② GitHub Copilot 概要・3 モード（Ask / Agent / Plan）</td><td>10 分</td></tr>
+        <tr><td>40–50 分</td><td>講義③ トークンと AI 利用量の説明</td><td>10 分</td></tr>
+        <tr><td>50–55 分</td><td><strong>休憩</strong></td><td>5 分</td></tr>
+        <tr><td>55–75 分</td><td>ハンズオン① コード補完体験</td><td>20 分</td></tr>
+        <tr><td>75–95 分</td><td>ハンズオン② プロンプトで処理を説明させる</td><td>20 分</td></tr>
+        <tr><td>95–110 分</td><td>ハンズオン③ 処理フローを図として出す</td><td>15 分</td></tr>
+        <tr><td>110–120 分</td><td>振り返り・Q&amp;A・アンケート回答</td><td>10 分</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="goals">本日のゴール</h2>
+    <ol class="goals">
+      <li>生成 AI と AI コーディングエージェントの概要と特性を理解する</li>
+      <li>GitHub Copilotの 3つのモード（Ask / Agent / Plan）を理解する</li>
+      <li>トークンと AI Credits（利用量）の考え方を理解し、コストを意識した使い方ができる</li>
+      <li>コード補完を使える</li>
+      <li>既存コードを GitHub Copilot に説明させられる</li>
+      <li>処理フローを図として生成させ、ドキュメントに残せる</li>
+    </ol>
+
+    <h2 id="precheck">事前準備チェックリスト</h2>
+    <p>開始前に以下が揃っていることを確認してください。</p>
+    <table>
+      <thead><tr><th>項目</th><th>確認方法</th></tr></thead>
+      <tbody>
+        <tr><td>Python 3.11+</td><td><code>python --version</code></td></tr>
+        <tr><td>Git 2.40+</td><td><code>git --version</code></td></tr>
+        <tr><td>VS Code 1.106 以降</td><td><code>code --version</code>（Plan モード演習で必須）</td></tr>
+        <tr><td>GitHub Copilot（VS Code 1.106 以降は本体に同梱）</td><td>VS Code 右下に GitHub Copilot アイコンが表示され、サイドバーにチャットアイコンが表示される</td></tr>
+        <tr><td>GitHub Copilot サインイン</td><td>アイコンをクリック → アカウント名が表示される</td></tr>
+        <tr><td>GitHub Copilot ライセンス（組織契約 Business / Enterprise）</td><td>ブラウザで <code>github.com/settings/copilot</code> を開き、組織経由のアクセス（Business / Enterprise）が表示される。あわせてチャットパネル下部にモードピッカー（Ask / Agent / Plan）が表示されることも確認</td></tr>
+        <tr><td>教材一式</td><td>配布 ZIP を展開済み（推奨：<code>git init</code> 済み）</td></tr>
+      </tbody>
+    </table>
+
+    <figure class="shot">
+      <img src="assets/images/copilot-status-bar.png" alt="VS Code 右下のステータスバーに GitHub Copilot アイコンが表示されている画面">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 210" role="img" aria-label="VS Code 右下のステータスバーに GitHub Copilot アイコンが表示されている画面のイメージ">
+          <rect x="0" y="0" width="820" height="210" fill="#ffffff"/>
+          <rect x="10" y="10" width="800" height="140" rx="8" fill="#1f2328"/>
+          <rect x="10" y="10" width="800" height="26" rx="8" fill="#2d333b"/>
+          <circle cx="28" cy="23" r="5" fill="#ff5f56"/><circle cx="46" cy="23" r="5" fill="#ffbd2e"/><circle cx="64" cy="23" r="5" fill="#27c93f"/>
+          <text x="88" y="28" font-family="sans-serif" font-size="12" fill="#e6edf3">fizzbuzz_starter.py — Visual Studio Code</text>
+          <text x="30" y="64" font-family="monospace" font-size="13" fill="#8b949e">3</text>
+          <text x="58" y="64" font-family="monospace" font-size="13" fill="#7ee787"># 1 から 100 までの FizzBuzz。3 の倍数なら Fizz、5 の倍数なら Buzz、</text>
+          <text x="30" y="86" font-family="monospace" font-size="13" fill="#8b949e">4</text>
+          <text x="58" y="86" font-family="monospace" font-size="13" fill="#7ee787"># 3 と 5 の両方の倍数なら FizzBuzz、それ以外はその数字をそのまま出力する。</text>
+          <text x="30" y="108" font-family="monospace" font-size="13" fill="#8b949e">5</text>
+          <rect x="10" y="124" width="800" height="26" fill="#0366d6"/>
+          <text x="26" y="141" font-family="sans-serif" font-size="12" fill="#ffffff">main*</text>
+          <text x="560" y="141" font-family="sans-serif" font-size="12" fill="#ffffff">Python 3.13.14</text>
+          <text x="660" y="141" font-family="sans-serif" font-size="12" fill="#ffffff">Ln 5, Col 1</text>
+          <circle cx="768" cy="137" r="10" fill="#ffffff"/>
+          <text x="762" y="141" font-family="sans-serif" font-size="11" font-weight="700" fill="#0366d6">C</text>
+          <path d="M660 178 L762 150" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="420" y="166" width="250" height="28" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="434" y="185" font-family="sans-serif" font-size="12" fill="#111418">GitHub Copilot アイコン（有効時に表示）</text>
+          <rect x="732" y="16" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="744" y="31" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図1：VS Code 右下ステータスバーの GitHub Copilot アイコン（サインイン済みの状態）</figcaption>
+    </figure>
+
+    </section>
+
+    <section class="page" id="p2" data-title="講義①：生成 AI とは？" data-time="15–30 分">
+<h2 id="lecture1">講義①：生成 AI とは？</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>15 分</span>
+      <span class="session-meta__item"><strong>目的</strong>生成 AI の仕組み・得意不得意・ハルシネーションへの向き合い方を、ひと続きの理屈として理解する</span>
+    </p>
+
+    <h3 id="l1-1">1. 生成 AI とは何か</h3>
+    <p><strong>生成 AI</strong> とは、学習した大量のデータをもとに、文章・画像・ソースコードなどの新しいコンテンツを生成する AI です。GitHub Copilot でも、コードの補完、説明、修正案の提示に生成 AI が使われています。</p>
+
+    <div class="callout note">
+      <strong>「確率的に最もありそうな文章などのコンテンツを作る」</strong> 仕組みになっているため、<br>
+      生成 AI が作るコンテンツは<strong>「正しさ」が保証されているわけではありません。</strong>
+    </div>
+
+    <h3 id="l1-2">2. 用語の地図：生成 AI / LLM / エージェント</h3>
+    <div class="nest">
+      <div class="nest__l1">生成 AI
+        <span class="nest__sub">文章・画像・音声・コードなど、新しいコンテンツを作る AI の総称。</span>
+        <div class="nest__l2">LLM（大規模言語モデル）
+          <span class="nest__sub">生成 AI のうち、膨大なテキストを学習して言語（自然言語もコードも）を扱うモデル。GitHub Copilot の「頭脳」にあたる部分。</span>
+          <div class="nest__l3">AI エージェント ＝ LLM ＋ ツールなどの実行
+            <span class="nest__sub">与えられた目的を達成するために、自分で考えながら自律的に行動するAIのことです。ファイルの読み書き、コマンド実行、テスト実行などを自分で行い、その結果を見て次の手を決める。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 id="l1-3">3. AI ツールの分類</h3>
+    <table>
+      <thead><tr><th>分類</th><th>例</th><th>特徴</th></tr></thead>
+      <tbody>
+        <tr><td><strong>補完特化型</strong></td><td>初期 GitHub Copilot（2021）</td><td>エディタ内でゴーストテキストを出すだけ（※現行 GitHub Copilot にもこの機能は内包）</td></tr>
+        <tr><td><strong>汎用 LLM チャット</strong></td><td>ChatGPT / Claude / Gemini</td><td>コーディング専用ではないが、コピペ運用で広く使われる</td></tr>
+        <tr class="row-hl"><td><strong>コーディングエージェント</strong></td><td><strong>GitHub Copilot</strong> / Cursor / Codex / Claude Code</td><td>自律的にファイルを横断で読み書き・コマンド実行・テスト実行など</td></tr>
+      </tbody>
+    </table>
+    <p><strong>2025 年以降</strong>、このコーディングエージェント型の活用が一気に広がりました。<br>本日はその中の１つ、<strong>GitHub Copilot</strong> を題材に触っていきます。</p>
+
+    <h3 id="l1-4">4. 得意なこと／苦手なこと（分かれ目は「指示の明確さ」）</h3>
+    <p>得意・苦手は<strong>作業の種類</strong>で決まるというより、<strong>やってほしいことがどれだけ明確に伝わっているか</strong>で決まります。生成 AI は渡された情報だけを手がかりに続きを組み立てるため、<strong>指示が明確なほど精度は上がり、曖昧なほど精度は落ちます</strong>。</p>
+    <table>
+      <thead><tr><th>精度が高くなる（指示が明確）</th><th>精度が低くなる（指示が不明確）</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>入力・処理・出力が言葉になっている<br><span class="note-line">例：「1〜100 を順に出力し、3 の倍数なら Fizz、5 の倍数なら Buzz にする」</span></td>
+          <td>ゴールが一言で終わっている<br><span class="note-line">例：「いい感じに直して」「使いやすくして」</span></td>
+        </tr>
+        <tr>
+          <td>期待する結果が具体例で示されている<br><span class="note-line">例：「<code>20260401</code> を渡したら <code>2026/04/01</code> を返す」</span></td>
+          <td>判断が受け取る側に委ねられている<br><span class="note-line">例：「日付をいい形式にして」（どの形式かは書かれていない）</span></td>
+        </tr>
+        <tr>
+          <td>守ってほしい制約が明記されている<br><span class="note-line">例：「外部ライブラリは使わず標準機能だけで書いて」</span></td>
+          <td>人間なら当然察する前提が書かれていない<br><span class="note-line">例：社内の命名規則、エラー処理の作法（下表）</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout caution">
+      <span class="callout-title">いちばん精度が落ちるのは「人間が暗黙的にやっていること」</span>
+      普段の実装やレビューでは、私たちは<strong>書かなくても分かっている前提</strong>を大量に使っています。生成 AI からはこれが見えていないため、<strong>書かれていない前提は「無いもの」として</strong>コードが出てきます。
+    </div>
+    <table>
+      <thead><tr><th>人間が暗黙的にやっていること（例）</th><th>渡さないと、こうなる</th></tr></thead>
+      <tbody>
+        <tr><td>社内の命名規則・コーディング規約</td><td>一般的には正しいが、社内規約から外れた名前・書き方で出てくる</td></tr>
+        <tr><td>業務ルール（例：顧客番号は 10 桁ゼロ埋め）</td><td>桁数やゼロ埋めが抜けたまま、動いてしまうコードになる</td></tr>
+        <tr><td>エラー時の扱い（例外を投げるのか、戻り値のコードで返すのか）</td><td>その場の一般的な作法で書かれ、既存コードと流儀が揃わない</td></tr>
+        <tr><td>ログに出してよい情報／出してはいけない情報</td><td>個人情報を含む値をそのままログに出力してしまう</td></tr>
+        <tr><td>使ってよいライブラリ・バージョンの制約</td><td>社内で未承認のライブラリを前提にしたコードが出てくる</td></tr>
+      </tbody>
+    </table>
+
+    <h4>暗黙の前提を「情報として渡す」3 つの方法</h4>
+    <ul>
+      <li><strong>例（サンプル）を見せる</strong>：同じような処理の既存コードを開いておく、あるいは該当箇所を選択して渡します。規約を言葉で説明するより、<strong>実例を 1 つ見せるほうが早く正確に伝わります</strong></li>
+      <li><strong>入出力を具体的に書く</strong>：「こう渡したら、こう返ってほしい」を 1〜2 組そえるだけで、狙いが一気に絞られます</li>
+      <li><strong>制約を先に書く</strong>：使ってよい範囲、守るべき形式、避けたい書き方を、指示の中に明記します</li>
+    </ul>
+    <p><strong>「苦手」は固定ではありません。</strong>足りない情報を渡せば、苦手側の多くは得意側に寄せられます。逆に、<strong>渡していない前提は言い方を変えても埋まりません</strong>。</p>
+
+    <h3 id="l1-5">5. 押さえておく 3 つの特性</h3>
+    <ul>
+      <li><strong>確率的応答（temperature / sampling）</strong>：同じ質問でも毎回違う答えになり得ます。再現性が無いのが原則です。</li>
+      <li><strong>学習時点のスナップショット</strong>：モデル内蔵の知識は学習が終わった時点で凍結されます。最新ライブラリ・最新 API は知らないことがあります。</li>
+      <li><strong>渡した文脈（コンテキスト）で答える</strong>：<strong>モデルの中の知識</strong>と<strong>その場で渡した情報</strong>は別物です。今書いているコードを GitHub Copilot が理解できるのは、そのコードを学習しているからではなく、開いているファイルや選択範囲が毎回コンテキストとして送られているからです。</li>
+    </ul>
+
+    <h3 id="l1-6">6. ハルシネーション</h3>
+    <p><strong>ハルシネーション</strong>とは、生成 AI が事実ではない内容を、もっともらしい形で出力してしまう現象です。</p>
+    <div class="callout caution">
+      <span class="callout-title">原因</span>
+      LLM は次に来そうな語を確率で選んでいるだけで、正しさを検証する仕組みを持ちません。だから、知らないことについても「それっぽい答え」を組み立てて返します。<strong>黙って間違えるのではなく、自信のある文体で間違える</strong>のが厄介な点です。
+    </div>
+
+    <div class="callout note">
+      <span class="callout-title">必要なこと</span>
+        <strong>AIが生成した内容は、必ず人がチェックする</strong>
+    </div>
+    </section>
+
+    <section class="page" id="p3" data-title="講義②：GitHub Copilot 概要・3 モード" data-time="30–40 分">
+<h2 id="lecture2">講義②：GitHub Copilot 概要・3 モード（Ask / Agent / Plan）</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>10 分</span>
+      <span class="session-meta__item"><strong>目的</strong>3 モードと Inline Chat の役割を区別し、場面に応じて選べるようにする</span>
+    </p>
+
+    <h3>GitHub Copilot Chat の 3 つのモード（2026 年 7 月時点）</h3>
+    <table>
+      <thead><tr><th>モード</th><th>役割</th><th>使う場面</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Ask</strong></td><td>質問・相談</td><td>コードを書き換えず、概念理解・レビュー</td></tr>
+        <tr><td><strong>Agent</strong></td><td>ファイル横断の読み書き・コマンド実行・テスト実行</td><td>AI が対象を選び、ツールも実行する自律タスク</td></tr>
+        <tr><td><strong>Plan</strong></td><td>計画立案</td><td>大きな仕様の前に「やること」を文書化、人間の承認ゲートを挟む</td></tr>
+      </tbody>
+    </table>
+
+    <figure class="shot">
+      <img src="assets/images/copilot-chat-modes.png" alt="GitHub Copilot Chat パネル下部のモードピッカーで Ask / Agent / Plan を選択している画面">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 300" role="img" aria-label="GitHub Copilot Chat パネル下部のモードピッカーで Ask / Agent / Plan を選択している画面のイメージ">
+          <rect x="0" y="0" width="820" height="300" fill="#ffffff"/>
+          <rect x="330" y="10" width="480" height="280" rx="8" fill="#f4f6f8" stroke="#c8d1da"/>
+          <rect x="330" y="10" width="480" height="30" rx="8" fill="#e3e8ee"/>
+          <text x="346" y="30" font-family="sans-serif" font-size="12" font-weight="700" fill="#111418">CHAT</text>
+          <rect x="500" y="52" width="294" height="34" rx="8" fill="#ddf4ff" stroke="#3d92e0"/>
+          <text x="514" y="74" font-family="sans-serif" font-size="12" fill="#111418">このファイルは何をしていますか？</text>
+          <rect x="346" y="96" width="448" height="52" rx="8" fill="#ffffff" stroke="#c8d1da"/>
+          <text x="360" y="118" font-family="sans-serif" font-size="12" fill="#111418">CSV を読み込み、地域別に集計して結果を</text>
+          <text x="360" y="138" font-family="sans-serif" font-size="12" fill="#111418">CSV に書き出すツールです。</text>
+          <rect x="346" y="160" width="180" height="86" rx="8" fill="#ffffff" stroke="#0366d6" stroke-width="2"/>
+          <rect x="350" y="164" width="172" height="26" rx="6" fill="#0366d6"/>
+          <text x="362" y="182" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">Ask</text>
+          <text x="362" y="208" font-family="sans-serif" font-size="12" fill="#111418">Agent</text>
+          <text x="362" y="232" font-family="sans-serif" font-size="12" fill="#111418">Plan</text>
+          <rect x="346" y="254" width="448" height="30" rx="8" fill="#ffffff" stroke="#c8d1da"/>
+          <rect x="352" y="259" width="58" height="20" rx="10" fill="#0366d6"/>
+          <text x="368" y="274" font-family="sans-serif" font-size="11" font-weight="700" fill="#ffffff">Ask</text>
+          <text x="422" y="274" font-family="sans-serif" font-size="12" fill="#57606a">Copilot に質問する…</text>
+          <path d="M300 214 L346 236" stroke="#bf8700" stroke-width="2" fill="none"/>
+          <rect x="20" y="196" width="280" height="46" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="34" y="216" font-family="sans-serif" font-size="12" fill="#111418">パネル下部のモードピッカー。</text>
+          <text x="34" y="234" font-family="sans-serif" font-size="12" fill="#111418">クリックで Ask / Agent / Plan を切り替える</text>
+          <rect x="732" y="16" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="744" y="31" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図2：Chat パネル下部のモードピッカー（Ask / Agent / Plan の切り替え）</figcaption>
+    </figure>
+
+    <p>加えて、<strong>Inline Chat（<code>Ctrl+I</code>）</strong> はエディタ内に直接小さなチャット UI を出し、選択範囲やカーソル位置の編集を即座に依頼できる軽量 UI です。</p>
+
+    <h3>GitHub Copilotのモードの動き</h3>
+    <p>GitHub Copilotは、コードの続きを提案するツールから、目的に応じて必要な情報を集め、作業を支援するAIへ進化しています。Ask、Agent、Planのいずれも、依頼内容に応じてワークスペース内のファイルや会話の文脈を参照し、必要な情報を集めながら回答します。違いは、自律的に情報を集めるかどうかではなく、<strong>情報を集めた後にどこまで作業を進めるか</strong>です。</p>
+
+    <table>
+      <thead><tr><th>モード</th><th>情報収集後の動き</th><th>向いている場面</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Ask</strong></td><td>関連するコードやファイルを調べ、説明、回答、改善案を提示します。基本的にはファイルを直接変更せず、人が判断するための情報を返します。</td><td>コードの理解、仕様確認、原因の相談、レビュー</td></tr>
+        <tr><td><strong>Plan</strong></td><td>関連ファイルや依存関係を調べ、変更対象、作業順序、確認方法を計画として整理します。実装前に影響範囲を確認したい場合に使います。</td><td>複数ファイルにまたがる変更、実装方針の整理、作業見積もり</td></tr>
+        <tr><td><strong>Agent</strong></td><td>必要なファイルを調べたうえで、ファイル変更、ターミナル操作、テスト、修正、再確認まで進めます。失敗した場合は結果を読み、別の方法を試します。</td><td>機能追加、バグ修正、テスト追加、ビルドエラーの解消</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <span class="callout-title">3モードに共通するポイント</span>
+      どのモードも、与えられた情報だけで即答するとは限りません。目的に応じてファイル、コード、会話の文脈などを調べ、必要な情報を集めます。モードを選ぶときは、<strong>回答だけが欲しいのか、計画を作りたいのか、実際の変更と検証まで任せたいのか</strong>で判断します。
+    </div>
+
+    <h4>Agentモードが実行まで進める作業例</h4>
+    <ul>
+      <li><strong>複数ファイルの機能追加</strong>：画面、API、データ処理、テストなど、関係するファイルを探してまとめて変更します。</li>
+      <li><strong>ビルドエラーの解消</strong>：ビルドを実行し、エラー内容を読んで、型、参照、設定などを修正します。</li>
+      <li><strong>依存関係の調査と修正</strong>：設定ファイルやロックファイルを読み、ライブラリの不足やバージョン不整合に対応します。</li>
+      <li><strong>リファクタリング</strong>：利用箇所を横断的に調べ、関数名の変更や共通処理の切り出しを行います。</li>
+      <li><strong>テストの追加</strong>：既存テストの書き方を読み、変更した機能に合わせて正常系と異常系のテストを作ります。</li>
+      <li><strong>ログからの原因調査</strong>：アプリケーションログやターミナル出力を読み、修正と再実行を繰り返します。</li>
+      <li><strong>ドキュメント更新</strong>：実装変更に合わせてREADME、設定例、操作手順などを更新します。</li>
+    </ul>
+    
+    </section>
+
+    <section class="page" id="p4" data-title="講義③：トークンと AI 利用量 ／ 休憩" data-time="40–55 分">
+<h2 id="lecture3">講義③：トークンと AI 利用量の説明</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>10 分</span>
+      <span class="session-meta__item"><strong>目的</strong>AI とのやり取りの「単位（トークン）」と「コスト（AI Credits）」の感覚をつかむ</span>
+    </p>
+
+    <h3>トークンの正体</h3>
+    <ul>
+      <li><strong>トークン</strong>：AI が文章を読み書きする際の最小単位。</li>
+      <li>日本語は 1 文字あたり 1〜3 トークンを消費するのが一般的（英語の方がトークン効率は良い）</li>
+      <li><strong>コンテキストウィンドウ</strong>：AI が一度に読み書きできる入力・出力の合計トークン量（主要モデルは 100K〜1M トークン規模）</li>
+      <li>長いファイルや長い会話履歴を渡すほど、コンテキストウィンドウとトークン消費の両方を圧迫します</li>
+    </ul>
+    <div class="callout">
+      <strong>具体例</strong>：日本語 400 文字程度の文章はおおよそ 500〜800 トークンに相当します。会話を続けるほど過去のやり取りもコンテキストウィンドウに積み上がるため、コンテキストウインドウが大きくなりすぎると AI が古い内容を「忘れた」ように振る舞うことがあります。
+    </div>
+
+    <h3>AI Credits（利用量）の考え方</h3>
+    <div class="callout note">
+      <span class="callout-title">2026 年 6 月 1 日に 従量課金に移行されました。</span>
+      GitHub Copilot は、1 credit = $0.01 USDの課金体系です。<br>
+      <strong>利用するモデル、利用するトークン数</strong> に応じて消費する credit が変わります。
+    </div>
+    
+    <h3>効率よく使うポイント</h3>
+    <ol>
+      <li><strong>コード補完は使い放題</strong>：ghost text による補完・Next Edit Suggestions は AI Credits を消費しないため、遠慮なく使ってよい</li>
+      <li><strong>Chat / Agent はクレジットを消費</strong>：1 回のやり取りごとに、入力＋出力のトークン量に応じて消費される</li>
+      <li><strong>無駄なコンテキストを渡さない</strong>：巨大なファイル全体ではなく、必要な範囲だけを選択してから質問する</li>
+      <li><strong>プロンプトを 1 回で的確に書く</strong>：曖昧な指示で何度もやり取りするより、What/How/Why を最初から含めたほうが消費を抑えられる</li>
+    </ol>
+
+    <h2 id="break">休憩（5 分）</h2>
+    <p>席に戻ったら <strong>VS Code を開いて、リポジトリのフォルダにいる</strong>状態で待機してください。</p>
+    <div class="callout note">
+      <span class="callout-title">ここからハンズオン</span>
+      以降は受講者が手元で実機操作するパートです。手順どおりに進め、各ハンズオン末尾のチェックポイントで、要点だけをまとめて確認してください。
+    </div>
+
+    
+    </section>
+
+    <section class="page" id="p5" data-title="ハンズオン①：コード補完体験" data-time="55–75 分">
+<h2 id="ho1">ハンズオン①：コード補完体験</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>20 分</span>
+      <span class="session-meta__item"><strong>目的</strong>GitHub Copilot のインライン補完（ghost text）を体感する</span>
+      <span class="session-meta__item"><strong>題材</strong><code>samples/session1/fizzbuzz_starter.py</code></span>
+    </p>
+
+    <h3>完成イメージ</h3>
+    <p><code>fizzbuzz_starter.py</code> を実行すると、1 から 100 までの FizzBuzz が出力される。</p>
+    <div class="callout">
+      <strong>FizzBuzz とは</strong>：1 から N までを順に出力するプログラミング初級題材。3 の倍数なら <code>Fizz</code>、5 の倍数なら <code>Buzz</code>、3 と 5 の両方の倍数なら <code>FizzBuzz</code>、それ以外はその数字をそのまま出力します。
+    </div>
+    <div class="code-block-wrap block--output" data-label="出力例：この通りに出れば成功">
+      <button class="copy-btn" data-copy-target="ho1-expected">コピー</button>
+      <pre id="ho1-expected">1
+2
+Fizz       ← 3 の倍数
+4
+Buzz       ← 5 の倍数
+Fizz       ← 6（3 の倍数）
+...
+14
+FizzBuzz   ← 15（3 と 5 の両方の倍数）</pre>
+    </div>
+
+    <h3>手順 1：補完を出して確定する</h3>
+    <p>このファイルには「何をしたいか」を書いた日本語コメントだけが入っています。<strong>コードは 1 行も書かれていません。</strong>ここから GitHub Copilot に書かせます。</p>
+    <div class="code-block-wrap block--code" data-label="コード：ファイルの中身（これだけです）">
+      <pre># コード補完体験
+
+# 1 から 100 までの FizzBuzz。3 の倍数なら Fizz、5 の倍数なら Buzz、
+# 3 と 5 の両方の倍数なら FizzBuzz、それ以外はその数字をそのまま出力する。</pre>
+    </div>
+    <ol class="steps">
+      <li>VS Code で <code>samples/session1/fizzbuzz_starter.py</code> を開きましょう</li>
+      <li>FizzBuzz の説明コメント（3〜4 行目）の直下、<strong>5 行目</strong>（ファイルのいちばん下の空行）にカーソルを置きましょう</li>
+      <li><code>def</code> と入力して、そのまま 1〜2 秒待ちます。カーソルの先に<strong>薄いグレーの文字</strong>で <code>fizzbuzz():</code> という関数名の候補が現れます。これが GitHub Copilot の提案（ゴーストテキスト）です。まだ確定していないので、ファイルには何も書き込まれていません
+        <figure class="shot">
+          <img src="assets/images/ghost-text1.png" alt="5 行目に def と入力したところ、グレーのゴーストテキストで関数名 fizzbuzz(): が提案されている画面">
+          <div class="shot__fallback">
+            <svg viewBox="0 0 820 230" role="img" aria-label="5 行目に def と入力し、グレーのゴーストテキストで関数名 fizzbuzz(): が提案されている画面のイメージ">
+              <rect x="0" y="0" width="820" height="230" fill="#ffffff"/>
+              <rect x="10" y="10" width="800" height="210" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+              <rect x="10" y="10" width="800" height="28" rx="8" fill="#f3f3f3"/>
+              <text x="30" y="29" font-family="sans-serif" font-size="12" fill="#24292f">fizzbuzz_starter.py</text>
+              <text x="30" y="66" font-family="monospace" font-size="13" fill="#6e7781">1</text>
+              <text x="60" y="66" font-family="monospace" font-size="13" fill="#008000"># コード補完体験</text>
+              <text x="30" y="88" font-family="monospace" font-size="13" fill="#6e7781">2</text>
+              <text x="30" y="110" font-family="monospace" font-size="13" fill="#6e7781">3</text>
+              <text x="60" y="110" font-family="monospace" font-size="13" fill="#008000"># 1 から 100 までの FizzBuzz。3 の倍数なら Fizz、5 の倍数なら Buzz、</text>
+              <text x="30" y="132" font-family="monospace" font-size="13" fill="#6e7781">4</text>
+              <text x="60" y="132" font-family="monospace" font-size="13" fill="#008000"># 3 と 5 の両方の倍数なら FizzBuzz、それ以外はその数字をそのまま出力する。</text>
+              <text x="30" y="154" font-family="monospace" font-size="13" fill="#6e7781">5</text>
+              <text x="60" y="154" font-family="monospace" font-size="13" font-weight="700" fill="#0000ff">def</text>
+              <text x="97" y="154" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">fizzbuzz():</text>
+              <path d="M250 176 L180 158" stroke="#bf8700" stroke-width="2" fill="none"/>
+              <rect x="250" y="158" width="370" height="44" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="264" y="176" font-family="sans-serif" font-size="12" fill="#111418">グレー＝ゴーストテキスト（関数名の候補）</text>
+              <text x="264" y="194" font-family="sans-serif" font-size="12" fill="#111418">Tab で確定 / Esc で却下 / Alt+] Alt+[ で切り替え</text>
+              <rect x="722" y="16" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="734" y="31" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+            </svg>
+          </div>
+          <figcaption>図3：5 行目に def と入力すると、関数名の候補がゴーストテキストで提案される</figcaption>
+        </figure>
+      </li>
+      <li>内容を確認しましょう。問題なければ <strong>Tab キー</strong>で確定します（<code>Esc</code> で却下、提案が複数あれば <code>Alt+]</code> / <code>Alt+[</code> で切り替え）</li>
+      <li>関数名を確定すると、続けて<strong>関数の中身がまとめて</strong>ゴーストテキストで提案されます。こちらも内容を確認して <strong>Tab キー</strong>で確定しましょう
+        <figure class="shot">
+          <img src="assets/images/ghost-text2.png" alt="関数名を確定した後、続けて関数の中身がグレーのゴーストテキストでまとめて提案されている画面">
+          <div class="shot__fallback">
+            <svg viewBox="0 0 820 370" role="img" aria-label="関数名を確定した後、関数の中身がグレーのゴーストテキストでまとめて提案されている画面のイメージ">
+              <rect x="0" y="0" width="820" height="370" fill="#ffffff"/>
+              <rect x="10" y="10" width="800" height="350" rx="8" fill="#ffffff" stroke="#d0d7de"/>
+              <rect x="10" y="10" width="800" height="28" rx="8" fill="#f3f3f3"/>
+              <text x="30" y="29" font-family="sans-serif" font-size="12" fill="#24292f">fizzbuzz_starter.py</text>
+              <text x="30" y="66" font-family="monospace" font-size="13" fill="#6e7781">1</text>
+              <text x="60" y="66" font-family="monospace" font-size="13" fill="#008000"># コード補完体験</text>
+              <text x="30" y="88" font-family="monospace" font-size="13" fill="#6e7781">2</text>
+              <text x="30" y="110" font-family="monospace" font-size="13" fill="#6e7781">3</text>
+              <text x="60" y="110" font-family="monospace" font-size="13" fill="#008000"># 1 から 100 までの FizzBuzz。3 の倍数なら Fizz、5 の倍数なら Buzz、</text>
+              <text x="30" y="132" font-family="monospace" font-size="13" fill="#6e7781">4</text>
+              <text x="60" y="132" font-family="monospace" font-size="13" fill="#008000"># 3 と 5 の両方の倍数なら FizzBuzz、それ以外はその数字をそのまま出力する。</text>
+              <text x="30" y="154" font-family="monospace" font-size="13" fill="#6e7781">5</text>
+              <text x="60" y="154" font-family="monospace" font-size="13" font-weight="700" fill="#0000ff">def</text>
+              <text x="97" y="154" font-family="monospace" font-size="13" fill="#795e26">fizzbuzz():</text>
+              <rect x="86" y="166" width="330" height="172" rx="6" fill="none" stroke="#cf222e" stroke-width="2"/>
+              <text x="100" y="188" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">    for i in range(1, 101):</text>
+              <text x="100" y="210" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">        output = ""</text>
+              <text x="100" y="232" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">        if i % 3 == 0:</text>
+              <text x="100" y="254" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">            output += "Fizz"</text>
+              <text x="100" y="276" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">        if i % 5 == 0:</text>
+              <text x="100" y="298" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">            output += "Buzz"</text>
+              <text x="100" y="320" font-family="monospace" font-size="13" fill="#a0a0a0" font-style="italic">        print(output if output else i)</text>
+              <path d="M440 210 L420 226" stroke="#bf8700" stroke-width="2" fill="none"/>
+              <rect x="440" y="176" width="350" height="44" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="454" y="194" font-family="sans-serif" font-size="12" fill="#111418">関数名を確定すると、中身もまとめて提案される</text>
+              <text x="454" y="212" font-family="sans-serif" font-size="12" fill="#111418">こちらも Tab で確定</text>
+              <rect x="722" y="16" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+              <text x="734" y="31" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+            </svg>
+          </div>
+          <figcaption>図4：関数名を確定すると、続けて関数の中身がまとめて提案される</figcaption>
+        </figure>
+      </li>
+    </ol>
+
+    <h4>どんな提案が出てくるか</h4>
+    <p>この題材では、おおむね次のようなコードが提案されます。</p>
+    <div class="code-block-wrap block--code" data-label="コード例：こういう提案が出てきます（入力は不要）">
+      <pre>def fizzbuzz():
+    for i in range(1, 101):
+        output = ""
+        if i % 3 == 0:
+            output += "Fizz"
+        if i % 5 == 0:
+            output += "Buzz"
+        print(output if output else i)</pre>
+    </div>
+    <div class="callout caution">
+      <span class="callout-title">上の例と一字一句同じである必要はありません</span>
+      <code>output</code> に文字を足していく書き方ではなく <code>if i % 15 == 0:</code> から始まる <code>if-elif-else</code> で提案してくる、引数付きの <code>def fizzbuzz(n=100):</code> になる、といった違いが出ます。講義① の<strong>確率的応答</strong>のとおり、同じ場所でも毎回同じ答えにはなりません。<strong>やりたいことが書けているか</strong>という目で見てください。
+    </div>
+
+    <h3>手順 2：実行して結果を確認する</h3>
+    <div class="callout caution">
+      <span class="callout-title">提案には「関数を呼び出す行」が入っていないことがあります</span>
+      上の提案は関数を<strong>定義しただけ</strong>で、それを実行する行がありません。この状態で実行してもターミナルには何も表示されません。
+    </div>
+    <ol class="steps">
+      <li>ファイルのいちばん下（関数の外側・インデントなし）に、作った関数を実行する 1 行を追記しましょう
+        <div class="code-block-wrap block--code" data-label="コード：ファイル末尾に追記（1 行）">
+          <button class="copy-btn" data-copy-target="ho1-call">コピー</button>
+          <pre id="ho1-call">fizzbuzz()</pre>
+        </div>
+        <p class="note-line">補完された関数名が <code>fizzbuzz</code> 以外だった場合や、引数付き（<code>def fizzbuzz(n=100):</code> など）だった場合は、その名前・引数に合わせて書きます（例：<code>fizzbuzz(100)</code>）。提案の中に既に呼び出し行が含まれていた場合は、この手順は不要です。</p>
+      </li>
+      <li>ファイルを保存しましょう（Ctrl+S）</li>
+      <li>VS Code 上部のメニューから <strong>ターミナル → 新しいターミナル</strong> を選びましょう。画面下部にターミナル欄が開きます</li>
+      <li>次のコマンドを入力して <code>Enter</code> を押しましょう（Windows・PowerShell の場合）
+        <div class="code-block-wrap block--terminal" data-label="ターミナルで実行（Windows / PowerShell）">
+          <button class="copy-btn" data-copy-target="ho1-run-win">コピー</button>
+          <pre id="ho1-run-win">python samples\session1\fizzbuzz_starter.py</pre>
+        </div>
+      </li>
+      <li>ターミナルに <code>1</code> から <code>100</code> までの出力が流れ、<code>3</code> の位置に <code>Fizz</code>、<code>5</code> の位置に <code>Buzz</code>、<code>15</code> の位置に <code>FizzBuzz</code> が並んでいれば成功です</li>
+    </ol>
+
+    <figure class="shot">
+      <img src="assets/images/terminal-run.png" alt="VS Code のターミナルで fizzbuzz_starter.py を実行し、FizzBuzz の結果が出力されている画面">
+      <div class="shot__fallback">
+        <svg viewBox="0 0 820 300" role="img" aria-label="VS Code のターミナルで fizzbuzz_starter.py を実行し、FizzBuzz の結果が出力されている画面のイメージ">
+          <rect x="0" y="0" width="820" height="300" fill="#ffffff"/>
+          <rect x="10" y="10" width="800" height="280" rx="8" fill="#1f2328"/>
+          <rect x="10" y="10" width="800" height="30" rx="8" fill="#2d333b"/>
+          <text x="28" y="30" font-family="sans-serif" font-size="12" fill="#8b949e">問題</text>
+          <text x="70" y="30" font-family="sans-serif" font-size="12" fill="#8b949e">出力</text>
+          <text x="112" y="30" font-family="sans-serif" font-size="12" fill="#8b949e">デバッグコンソール</text>
+          <text x="232" y="30" font-family="sans-serif" font-size="12" font-weight="700" fill="#ffffff">ターミナル</text>
+          <rect x="228" y="36" width="72" height="3" fill="#0366d6"/>
+          <text x="28" y="64" font-family="monospace" font-size="12" fill="#7ee787">PS C:\handson\github-copilot-training&gt;</text>
+          <text x="268" y="64" font-family="monospace" font-size="12" fill="#e6edf3">python samples\session1\fizzbuzz_starter.py</text>
+          <text x="28" y="88" font-family="monospace" font-size="12" fill="#e6edf3">1</text>
+          <text x="28" y="106" font-family="monospace" font-size="12" fill="#e6edf3">2</text>
+          <text x="28" y="124" font-family="monospace" font-size="12" fill="#e6edf3">Fizz</text>
+          <text x="28" y="142" font-family="monospace" font-size="12" fill="#e6edf3">4</text>
+          <text x="28" y="160" font-family="monospace" font-size="12" fill="#e6edf3">Buzz</text>
+          <text x="28" y="178" font-family="monospace" font-size="12" fill="#e6edf3">Fizz</text>
+          <text x="28" y="196" font-family="monospace" font-size="12" fill="#e6edf3">7</text>
+          <text x="28" y="214" font-family="monospace" font-size="12" fill="#e6edf3">8</text>
+          <text x="28" y="232" font-family="monospace" font-size="12" fill="#e6edf3">Fizz</text>
+          <text x="28" y="250" font-family="monospace" font-size="12" fill="#e6edf3">Buzz</text>
+          <text x="28" y="268" font-family="monospace" font-size="12" fill="#e6edf3">11</text>
+          <path d="M300 118 L120 124" stroke="#ffd33d" stroke-width="2" fill="none"/>
+          <rect x="300" y="100" width="300" height="34" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="314" y="122" font-family="sans-serif" font-size="12" fill="#111418">3 の倍数で Fizz、5 の倍数で Buzz</text>
+          <path d="M300 214 L120 250" stroke="#ffd33d" stroke-width="2" fill="none"/>
+          <rect x="300" y="196" width="340" height="34" rx="8" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="314" y="218" font-family="sans-serif" font-size="12" fill="#111418">この調子で 100 まで流れれば成功</text>
+          <rect x="722" y="16" width="70" height="20" rx="10" fill="#fff4c2" stroke="#bf8700"/>
+          <text x="734" y="31" font-family="sans-serif" font-size="11" fill="#111418">イメージ図</text>
+        </svg>
+      </div>
+      <figcaption>図5：ターミナルでの実行と出力結果</figcaption>
+    </figure>
+
+    <h3>補完を引き出すコメント</h3>
+    <p>ここまでで分かるとおり、インライン補完は<strong>直前のコメント</strong>を手がかりにコードを組み立てます。今度は自分でコメントを書いて、補完を引き出してみましょう。ファイルのいちばん下に次の 1 行を書き、Enter で改行して 1〜2 秒待ちます。</p>
+    <div class="code-block-wrap block--code" data-label="コード：ファイル末尾に追記して補完を待つ">
+      <button class="copy-btn" data-copy-target="ho1-appliedcomment">コピー</button>
+      <pre id="ho1-appliedcomment"># リストの中の偶数だけを合計する（リスト内包表記を使う）</pre>
+    </div>
+    <p>「何をしたいか」を具体的に書くほど、提案は狙いに近づきます。逆にコメントが曖昧だと、提案も的を外します。</p>
+    
+    </section>
+
+    <section class="page" id="p6" data-title="ハンズオン②：プロンプトで処理を説明させる" data-time="75–95 分">
+<h2 id="ho2">ハンズオン②：プロンプトで処理を説明させる</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>20 分</span>
+      <span class="session-meta__item"><strong>目的</strong>既存コードの理解を GitHub Copilot に手伝わせる</span>
+      <span class="session-meta__item"><strong>題材</strong><code>samples/session1/csv_processor.py</code>（わざと読みづらいコード）</span>
+    </p>
+
+    <h3>準備</h3>
+    <ol class="steps">
+      <li>VS Code で <code>samples/session1/csv_processor.py</code> を開きましょう</li>
+      <li>サイドバーの GitHub Copilot Chat アイコンをクリックして、チャットパネルを開きましょう</li>
+      <li>モードピッカーが Ask になっていることを確認しましょう</li>
+    </ol>
+
+    <h4>ステップ A：まず、ひと言だけで頼んでみる（5 分）</h4>
+    <p>Chat の入力欄に、次の 1 文だけを入力して送信しましょう。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat の入力欄に入力">
+      <button class="copy-btn" data-copy-target="ho2-stepa">コピー</button>
+      <pre id="ho2-stepa">この処理を説明して</pre>
+    </div>
+    <p class="note-line">「この処理」が指すのは、<strong>エディタで開いているファイル（アクティブなタブ）</strong>です。コードを範囲選択してから送れば、その選択範囲が対象になります。</p>
+    <p>返ってきた説明を読んでみてください。それなりに読めるものは返ってきますが、<strong>何をどこまで書くかは GitHub Copilot まかせ</strong>です。自分が知りたかったことが入っているかどうかは、送ってみるまで分かりません。</p>
+
+    <h4>ステップ B：構造化プロンプトで深掘りする（本題・15 分）</h4>
+    <p><strong>ここが今回の本題です。</strong>ステップ A のように短く頼むと、返ってくる項目も粒度も相手まかせになります。次は、初めてこのコードを触る人が知りたいことを<strong>こちらから指定して</strong>説明させてみましょう。</p>
+    <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat に貼るプロンプト">
+      <button class="copy-btn" data-copy-target="ho2-stepb">コピー</button>
+      <pre id="ho2-stepb">このファイルを解析し、下記に従って処理を説明して
+
+1.目的：このファイルは何のためのものか（1～2 文）
+2.実行方法：起動コマンド・必要な入力・出力先（表で）
+3.処理の流れ：主要な処理を上から順に 5ステップ程度
+4.関数一覧：登場する関数をすべて
+5.注意すること：実行すると何が起きるか、エラー時はどうなるか、暗黙の前提（箇条書き）
+6.コードから読み取れなかった点（箇条書き）
+
+コードから確認できないことは推測せず「不明」と記載すること</pre>
+    </div>
+    <ol class="steps">
+      <li><code>csv_processor.py</code> をエディタで開いた状態（アクティブなタブ）にしましょう。「このファイル」はこのタブを指します</li>
+      <li>上のプロンプトを Chat の入力欄に貼り付け、送信ボタン（または Enter ）で送信しましょう</li>
+      <li>出力結果を読み、コードと照らし合わせて正しいか確認しましょう</li>
+    </ol>
+    <div class="callout note">
+      <span class="callout-title">効いているのは最後の 1 行</span>
+      <strong>「確認できないことは推測せず『不明』と記載すること」</strong>——これが無いと、AI は空欄を埋めようとしてもっともらしい嘘を書きます。「不明」と返ってきた項目は、AI の限界ではなく<strong>コードに書かれていない情報＝人に聞くべきこと</strong>です。オンボーディングでは、そこがそのまま質問リストになります。
+    </div>
+    <p class="note-line">ステップ A の「ひと言」と、ステップ B の「構造化プロンプト」。同じコードに対して返ってくるものがどれだけ変わるかを見比べると、プロンプトを書く価値が体感できます。</p>
+
+    <h4>プロンプトの工夫ポイント</h4>
+    <p>良いプロンプト = <strong>3 つの要素</strong>を含む</p>
+    <ol>
+      <li><strong>What</strong>：何をしてほしいか（要約・列挙・変換）</li>
+      <li><strong>How</strong>：どんな形式で（1〜2 文、表で、箇条書きで）</li>
+      <li><strong>Why / Context</strong>：背景情報（対象ファイル、制約、推測を禁じる指示）</li>
+    </ol>
+    <p class="note-line">悪い例：「これ何？」／ 良い例：「このファイルの主目的を 1 文で説明し、実行すると何が起きるかを箇条書きで」</p>
+
+    <details>
+      <summary>うまくいかない場合のヒント（クリックで展開）</summary>
+      <table>
+        <thead><tr><th>症状</th><th>対処</th></tr></thead>
+        <tbody>
+          <tr><td>別のファイルの説明が返ってくる</td><td>説明させたいファイルをエディタで開き、そのタブをアクティブにしてから送信する。または Chat 入力欄の 📎（コンテキストを追加）からファイルを指定する</td></tr>
+          <tr><td>説明が表形式にならない</td><td>プロンプトに「Markdown の表形式で」と追記</td></tr>
+          <tr><td>説明が長すぎる</td><td>プロンプトに「200 文字以内で」と制約を追加</td></tr>
+          <tr><td>英語で返ってくる</td><td>プロンプト末尾に「日本語で答えてください」を追加</td></tr>
+        </tbody>
+      </table>
+    </details>
+    
+    </section>
+
+    <section class="page" id="p7" data-title="ハンズオン③：処理フロー図 ／ コミット" data-time="95–110 分">
+<h2 id="ho3">ハンズオン③：処理フローを図として出す</h2>
+    <p class="session-meta">
+      <span class="session-meta__item"><strong>想定時間</strong>15 分</span>
+      <span class="session-meta__item"><strong>目的</strong>GitHub Copilot Chat にコードを調査させ、処理フローを図として簡単に確認する</span>
+    </p>
+
+    <h3>手順：GitHub Copilot Chat上でフロー図を表示する</h3>
+    <ol class="steps">
+      <li><code>csv_processor.py</code> をエディタで開いた状態（アクティブなタブ）にしましょう</li>
+      <li>GitHub Copilot ChatをAgentモードに切り替えましょう</li>
+      <li>次のプロンプトを送信しましょう
+        <div class="code-block-wrap block--prompt" data-label="GitHub Copilot Chat に貼るプロンプト"><button class="copy-btn" data-copy-target="ho3-prompt">コピー</button><pre id="ho3-prompt">このファイルを読み、主要な処理フローを図にしてください。
+- 入力ファイルの存在確認、CSV読み込み、2種類の集計、標準出力、CSV書き出しを含める
+- 入力ファイルがない場合のエラー終了も分岐として表す
+- 各要素は日本語で、開始と正常終了・異常終了を区別する
+- GitHub Copilot Chat上でプレビューできるフロー図として表示する
+- 主要な処理に絞り、見やすい縦方向の図にする</pre></div>
+      </li>
+      <li>Chat上に表示された図を見て、処理順、分岐、日本語ラベルがコードと一致するか確認しましょう</li>
+      <li>誤りや読みにくさがあれば、「主要5ステップに絞ってください」「エラー処理を右側に分けてください」のように修正を依頼しましょう</li>
+      <li>図の表示部分を展開し、図のもとになっている記述を確認しましょう</li>
+    </ol>
+
+    <div class="callout note">
+      <span class="callout-title">コミット：Session 1 の作業を保存する</span>
+      <ol class="steps">
+        <li>VS Code 上部のメニューから <strong>ターミナル → 新しいターミナル</strong> を選び、画面下部にターミナル欄を開きましょう。</li>
+        <li>ターミナルの現在位置が教材リポジトリのフォルダーであることを確認しましょう。</li>
+        <li>ターミナル欄で次のコマンドを順番に実行しましょう。</li>
+      </ol>
+      <div class="code-block-wrap block--terminal" data-label="ターミナルで実行">
+        <button class="copy-btn" data-copy-target="commit-session1">コピー</button>
+        <pre id="commit-session1">git add .
+git commit -m "session1 completed"</pre>
+      </div>
+      <p class="note-line"><code>git commit</code> の実行後にコミットIDと変更件数が表示されれば保存完了です。エラーが表示された場合は、その内容を確認してから次のフェーズへ進んでください。</p>
+    </div>
+
+    
+    </section>
+
+    <section class="page" id="p8" data-title="振り返り・次回予告・参考リンク" data-time="110–120 分">
+<h2 id="review">振り返り・Q&amp;A・アンケート回答（10 分）</h2>
+    <p>今日ひととおり触れたのは、次の 6 つです。</p>
+    <ul>
+      <li>生成 AI の仕組み（次に来そうな語を確率で選ぶ）と、その帰結としての限界（ハルシネーション）</li>
+      <li>GitHub Copilot の 3 モード（Ask / Agent / Plan）と Inline Chat</li>
+      <li>トークンと AI Credits（利用量）の考え方</li>
+      <li>コード補完（Tab で確定）</li>
+      <li>構造化プロンプトによる既存コードの理解</li>
+      <li>処理フローを図として生成させる</li>
+    </ul>
+
+    <h3>Q&amp;A</h3>
+    <p>ここまでの内容で疑問点があれば回答しますので、遠慮なく質問してください。</p>
+
+    <h3>アンケート回答</h3>
+    <p>次のアンケートフォームに回答してください。満足度・改善要望・感想を共有していただけると、次回以降の教材改善に役立ちます。</p>
+    <div class="code-block-wrap block--output" data-label="第 1 回 アンケートフォーム URL">
+      <button class="copy-btn" data-copy-target="survey-session1">コピー</button>
+      <pre id="survey-session1">https://forms.cloud.microsoft/r/sSHE7BmDex</pre>
+    </div>
+    <p class="note-line"><a href="https://forms.cloud.microsoft/r/sSHE7BmDex" target="_blank" rel="noopener">このリンクからも開けます</a>。</p>
+
+    <h2 id="next">次回予告</h2>
+    <p>次回のテーマは「実装支援機能をマスターする」です。扱うのは次のあたり。</p>
+    <ul>
+      <li>リファクタリング（観点を指定して命名・関数分割）</li>
+      <li>バグ調査・修正（エラーメッセージから <code>/fix</code>）</li>
+      <li>単体テスト生成（pytest 連携）</li>
+      <li>Vibe Coding でテトリスを作る</li>
+    </ul>
+    <p>気になったことがあれば、遠慮なく質問してください。</p>
+
+    <h2 id="links">参考リンク</h2>
+    <ul>
+      <li><a href="https://docs.github.com/ja/copilot" target="_blank" rel="noopener">GitHub Copilot 公式 Docs（日本語）</a></li>
+      <li><a href="https://code.visualstudio.com/docs/copilot/setup" target="_blank" rel="noopener">VS Code Copilot Getting Started</a></li>
+      <li><a href="https://mermaid.js.org/" target="_blank" rel="noopener">Mermaid 公式</a></li>
+    </ul>
+    </section>
+  </main>
+</div>
+
+<a href="#top" class="top-link" title="ページ先頭へ" aria-label="ページ先頭へ">↑</a>
+
+<script src="assets/handout.js"></script>
+</body>
+</html>
